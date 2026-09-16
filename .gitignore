@@ -8,3 +8,5 @@
 *.log
 /apps/desktop/src-tauri/gen/
 /apps/desktop/test-results/
+__pycache__/
+/packages/npm/bin/

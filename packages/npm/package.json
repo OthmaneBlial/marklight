@@ -1,0 +1,15 @@
+{
+  "name": "marklight",
+  "version": "0.1.0",
+  "description": "Offline Markdown terminal reader in Rust — macOS Apple Silicon binary",
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/OthmaneBlial/marklight.git", "directory": "packages/npm" },
+  "homepage": "https://github.com/OthmaneBlial/marklight#readme",
+  "bugs": { "url": "https://github.com/OthmaneBlial/marklight/issues" },
+  "bin": { "marklight": "bin/marklight" },
+  "os": ["darwin"],
+  "cpu": ["arm64"],
+  "files": ["bin/marklight", "README.md", "LICENSE"],
+  "keywords": ["markdown", "reader", "rust", "cli", "offline", "macos"],
+  "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/" }
+}
