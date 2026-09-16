@@ -1,0 +1,174 @@
+{
+  "date": "2026-09-16",
+  "kernel_method": "single release-mode sample per size, syntax definitions prewarmed; synthetic repeated GFM chunks",
+  "kernels": [
+    {
+      "bytes": 10000,
+      "headings": 41,
+      "html_bytes": 28138,
+      "html_ms": 2.0917499999999998,
+      "parse_ms": 0.190875,
+      "terminal_ms": 0.9379580000000001
+    },
+    {
+      "bytes": 100000,
+      "headings": 409,
+      "html_bytes": 283431,
+      "html_ms": 17.220665999999998,
+      "parse_ms": 1.7702499999999999,
+      "terminal_ms": 7.250167
+    },
+    {
+      "bytes": 1000000,
+      "headings": 4082,
+      "html_bytes": 2842510,
+      "html_ms": 170.426083,
+      "parse_ms": 15.313125000000001,
+      "terminal_ms": 68.947458
+    },
+    {
+      "bytes": 5000000,
+      "headings": 20409,
+      "html_bytes": 14243065,
+      "html_ms": 853.1230840000001,
+      "parse_ms": 80.152292,
+      "terminal_ms": 334.231042
+    },
+    {
+      "bytes": 10000000,
+      "headings": 40817,
+      "html_bytes": 28508334,
+      "html_ms": 1696.708958,
+      "parse_ms": 168.451875,
+      "terminal_ms": 673.3151670000001
+    }
+  ],
+  "processes": {
+    "host": "macOS-26.6-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "cpu": "Apple M2",
+    "cli_help": {
+      "first_ms": 6.2314590031746775,
+      "median_ms": 5.725937502575107,
+      "max_ms": 6.2314590031746775,
+      "samples_ms": [
+        6.2314590031746775,
+        5.901458003791049,
+        5.99883301765658,
+        5.840458994498476,
+        5.865291983354837,
+        5.698167020455003,
+        5.9295829851180315,
+        5.722792004235089,
+        5.647084006341174,
+        5.800582992378622,
+        5.7225839991588145,
+        5.6819999881554395,
+        5.693250015610829,
+        5.755916005000472,
+        5.5980410252232105,
+        5.729083000915125,
+        5.705000017769635,
+        5.831707996549085,
+        5.546875006984919,
+        5.610834021354094
+      ]
+    },
+    "cli_read": {
+      "first_ms": 5.779708008049056,
+      "median_ms": 5.791750489152037,
+      "max_ms": 6.120125006418675,
+      "samples_ms": [
+        5.779708008049056,
+        5.802583997137845,
+        6.0526669840328395,
+        5.753125005867332,
+        5.992667021928355,
+        5.773291981313378,
+        5.672917002812028,
+        6.120125006418675,
+        5.97170798573643,
+        5.849000008311123,
+        5.839541991008446,
+        5.862250021891668,
+        5.6537500058766454,
+        5.780916981166229,
+        5.887165985768661,
+        5.686959018930793,
+        5.729708005674183,
+        5.663083982653916,
+        5.745667003793642,
+        5.965292017208412
+      ]
+    },
+    "desktop_ready": [
+      {
+        "ready_ms": 534.7664580000001,
+        "observed_wall_ms": 1142.3091250180732,
+        "document_bytes": 357
+      },
+      {
+        "ready_ms": 558.8043339999999,
+        "observed_wall_ms": 658.4508339874446,
+        "document_bytes": 357
+      },
+      {
+        "ready_ms": 539.533958,
+        "observed_wall_ms": 631.5952090080827,
+        "document_bytes": 357
+      },
+      {
+        "ready_ms": 551.18875,
+        "observed_wall_ms": 647.1949590195436,
+        "document_bytes": 10000
+      },
+      {
+        "ready_ms": 627.147042,
+        "observed_wall_ms": 732.6020000036806,
+        "document_bytes": 100000
+      },
+      {
+        "ready_ms": 1495.103375,
+        "observed_wall_ms": 1587.0969999814406,
+        "document_bytes": 1000000
+      },
+      {
+        "ready_ms": 5517.987042,
+        "observed_wall_ms": 5607.844459009357,
+        "document_bytes": 5000000
+      },
+      {
+        "ready_ms": 11001.950625,
+        "observed_wall_ms": 11089.907042012783,
+        "document_bytes": 10000000
+      }
+    ],
+    "desktop_idle_native_only": [
+      {
+        "native_cpu_percent": 0.0,
+        "native_rss_kib": 111744,
+        "interval_seconds": 2.0176562500128057
+      },
+      {
+        "native_cpu_percent": 0.0,
+        "native_rss_kib": 111696,
+        "interval_seconds": 2.0129541250062175
+      },
+      {
+        "native_cpu_percent": 0.0,
+        "native_rss_kib": 111696,
+        "interval_seconds": 2.0113445419992786
+      },
+      {
+        "native_cpu_percent": 0.0,
+        "native_rss_kib": 105888,
+        "interval_seconds": 2.011827209003968
+      },
+      {
+        "native_cpu_percent": 0.0,
+        "native_rss_kib": 105888,
+        "interval_seconds": 2.013393333996646
+      }
+    ]
+  }
+}

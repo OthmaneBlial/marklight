@@ -216,7 +216,8 @@ async function startup() {
   });
   config = await invoke<Config>('get_config'); applyPreferences(); recents(config.recent); await pending();
   await actions;
-  await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+  // render/updateProgress already forces initial layout. Report DOM readiness;
+  // background WebViews can suspend animation frames indefinitely.
   await invoke('reader_ready');
 }
 void startup().catch(error => notify(String(error), true));
