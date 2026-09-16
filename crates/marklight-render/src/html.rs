@@ -1,4 +1,7 @@
-use std::{collections::HashSet, sync::LazyLock};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::LazyLock,
+};
 
 use marklight_core::Document;
 use pulldown_cmark::{CowStr, Event, Tag, TagEnd};
@@ -26,6 +29,8 @@ pub fn render_html(document: &Document, options: &HtmlOptions<'_>) -> String {
     let mut heading = 0;
     let mut code = 0;
     let mut in_code = false;
+    let mut code_cache: HashMap<(&str, &str), String> = HashMap::new();
+    let mut cached_bytes = 0;
     let raw_tags: HashSet<&str> = [
         "p", "b", "i", "strong", "em", "del", "br", "details", "summary", "kbd", "sub", "sup",
     ]
@@ -40,20 +45,17 @@ pub fn render_html(document: &Document, options: &HtmlOptions<'_>) -> String {
             Event::Start(Tag::CodeBlock(_)) => {
                 in_code = true;
                 let block = &document.code_blocks[code];
-                let syntax = SYNTAXES.find_syntax_by_token(&block.language).unwrap_or_else(|| SYNTAXES.find_syntax_plain_text());
-                let theme = &THEMES.themes[if options.dark { "base16-ocean.dark" } else { "InspiredGitHub" }];
-                let mut highlighted = String::new();
-                // Bound syntax highlighting cost for very large code blocks.
-                if block.code.len() <= 128 * 1024 {
-                    let mut highlighter = HighlightLines::new(syntax, theme);
-                    for line in LinesWithEndings::from(&block.code) {
-                        match highlighter.highlight_line(line, &SYNTAXES)
-                            .ok().and_then(|ranges| styled_line_to_highlighted_html(&ranges, IncludeBackground::No).ok()) {
-                            Some(html) => highlighted.push_str(&html),
-                            None => highlighted.push_str(&escape(line)),
-                        }
+                let key = (block.language.as_str(), block.code.as_str());
+                let highlighted = if let Some(cached) = code_cache.get(&key) {
+                    std::borrow::Cow::Borrowed(cached.as_str())
+                } else {
+                    let result = highlight_code(&block.code, &block.language, options.dark);
+                    if code_cache.len() < 512 && cached_bytes + result.len() <= 4 * 1024 * 1024 {
+                        cached_bytes += result.len();
+                        code_cache.insert(key, result.clone());
                     }
-                } else { highlighted = escape(&block.code); }
+                    std::borrow::Cow::Owned(result)
+                };
                 let html = format!("<pre data-code=\"{code}\" data-language=\"{}\"><code>{highlighted}</code></pre>\n", escape(&block.language));
                 code += 1;
                 Some(Event::Html(html.into()))
@@ -90,6 +92,33 @@ pub fn render_html(document: &Document, options: &HtmlOptions<'_>) -> String {
     cleaner.clean(&html).to_string()
 }
 
+fn highlight_code(code: &str, language: &str, dark: bool) -> String {
+    let syntax = SYNTAXES
+        .find_syntax_by_token(language)
+        .unwrap_or_else(|| SYNTAXES.find_syntax_plain_text());
+    if syntax.name == "Plain Text" {
+        return escape(code);
+    }
+    let theme = &THEMES.themes[if dark {
+        "base16-ocean.dark"
+    } else {
+        "InspiredGitHub"
+    }];
+    let mut result = String::new();
+    let mut highlighter = HighlightLines::new(syntax, theme);
+    for line in LinesWithEndings::from(code) {
+        match highlighter
+            .highlight_line(line, &SYNTAXES)
+            .ok()
+            .and_then(|ranges| styled_line_to_highlighted_html(&ranges, IncludeBackground::No).ok())
+        {
+            Some(html) => result.push_str(&html),
+            None => result.push_str(&escape(line)),
+        }
+    }
+    result
+}
+
 fn escape(value: &str) -> String {
     value
         .replace('&', "&amp;")
@@ -102,6 +131,18 @@ fn escape(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn large_code_is_highlighted_and_repeated_blocks_keep_distinct_copy_ids() {
+        let source = "let value = 42;\n".repeat(9000);
+        assert!(source.len() > 128 * 1024);
+        let doc = Document::parse(&format!("```rust\n{source}```\n\n```rust\n{source}```\n"));
+        let html = render_html(&doc, &HtmlOptions::default());
+        assert!(html.contains("data-code=\"0\""));
+        assert!(html.contains("data-code=\"1\""));
+        assert!(html.matches("<span style=").count() > 9000);
+        assert_eq!(doc.code_blocks[0].code, source);
+        assert_eq!(doc.code_blocks[1].code, source);
+    }
     #[test]
     fn sanitizes_hostile_html_urls_and_images() {
         let doc = Document::parse(include_str!("../../../fixtures/markdown/malicious-html.md"));
