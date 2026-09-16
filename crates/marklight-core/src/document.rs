@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use pulldown_cmark::{CodeBlockKind, Event, Options, Parser, Tag, TagEnd};
 use serde::Serialize;
@@ -54,6 +54,7 @@ impl Document {
         let mut code: Option<CodeBlock> = None;
         let mut code_last_end: Option<usize> = None;
         let mut occupied = HashSet::new();
+        let mut next_suffix: HashMap<String, usize> = HashMap::new();
         let mut in_link = 0;
         let mut words = 0;
         let mut finder = linkify::LinkFinder::new();
@@ -67,12 +68,17 @@ impl Document {
                 Event::End(TagEnd::Heading(_)) => {
                     if let Some((level, text)) = heading.take() {
                         let base = slug(&text);
-                        let mut id = base.clone();
-                        let mut suffix = 0;
+                        let suffix = next_suffix.entry(base.clone()).or_default();
+                        let mut id = if *suffix == 0 {
+                            base.clone()
+                        } else {
+                            format!("{base}-{suffix}")
+                        };
                         while !occupied.insert(id.clone()) {
-                            suffix += 1;
+                            *suffix += 1;
                             id = format!("{base}-{suffix}");
                         }
+                        *suffix += 1;
                         headings.push(Heading { level, text, id });
                     }
                 }
@@ -242,6 +248,20 @@ mod tests {
             doc.events
                 .iter()
                 .any(|e| matches!(e, Event::Start(Tag::Table(_))))
+        );
+    }
+
+    #[test]
+    fn repeated_heading_ids_scale_and_remain_unique() {
+        let doc = Document::parse(&"# Repeated\n".repeat(10000));
+        assert_eq!(doc.headings[9999].id, "repeated-9999");
+        assert_eq!(
+            doc.headings
+                .iter()
+                .map(|h| &h.id)
+                .collect::<HashSet<_>>()
+                .len(),
+            10000
         );
     }
 
