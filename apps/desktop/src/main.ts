@@ -8,6 +8,8 @@ import type { Config, Navigation, Payload, Theme } from './types';
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const viewport = $('viewport');
 const article = $('document');
+const documentHeadings = new Map<string, HTMLElement>();
+let headingElements: HTMLElement[] = [];
 const native = isTauri();
 let config: Config = { theme: 'system', font_size: 16, toc: true, zen_mode: false, recent: [] };
 let current: Payload | null = null;
@@ -19,6 +21,9 @@ let reloadTimer: ReturnType<typeof setTimeout>;
 let searchTimer: ReturnType<typeof setTimeout>;
 let preferencesTimer: ReturnType<typeof setTimeout>;
 let openingDialog = false;
+let openRequest = 0;
+let activeOutline: HTMLAnchorElement | null = null;
+const outlineLinks = new Map<string, HTMLAnchorElement>();
 const systemDark = matchMedia('(prefers-color-scheme: dark)');
 const mobile = matchMedia('(max-width: 750px)');
 const dark = () => config.theme === 'dark' || (config.theme === 'system' && systemDark.matches);
@@ -29,6 +34,14 @@ function notify(message: string, error = false) {
   toastTimer = setTimeout(() => { toast.hidden = true; }, error ? 8000 : 2000);
 }
 function enqueue(action: () => Promise<void>) { actions = actions.then(action).catch(error => notify(String(error), true)); }
+function yieldToUi() {
+  // Message tasks keep working when macOS throttles background WebView timers.
+  return new Promise<void>(resolve => {
+    const channel = new MessageChannel();
+    channel.port1.onmessage = () => { channel.port1.close(); channel.port2.close(); resolve(); };
+    channel.port2.postMessage(null);
+  });
+}
 function applyPreferences() {
   document.documentElement.dataset.theme = dark() ? 'dark' : 'light';
   document.documentElement.style.setProperty('--font-size', `${config.font_size}px`);
@@ -55,20 +68,25 @@ function recents(paths: string[]) {
   }
 }
 function scrollToHeading(id: string) {
-  const heading = document.getElementById(id);
-  if (heading && article.contains(heading)) { heading.scrollIntoView({ block: 'start' }); heading.tabIndex = -1; heading.focus({ preventScroll: true }); }
+  const heading = documentHeadings.get(id);
+  if (heading) { heading.scrollIntoView({ block: 'start' }); heading.tabIndex = -1; heading.focus({ preventScroll: true }); }
   document.body.classList.remove('mobile-outline');
+}
+function headingAt(top: number) {
+  let low = 0; let high = headingElements.length;
+  while (low < high) {
+    const mid = (low + high) >>> 1;
+    if (headingElements[mid].getBoundingClientRect().top <= top) low = mid + 1; else high = mid;
+  }
+  return headingElements[low - 1];
 }
 function context() {
   const top = viewport.getBoundingClientRect().top;
-  let heading: HTMLElement | undefined;
-  for (const el of article.querySelectorAll<HTMLElement>('h1,h2,h3,h4,h5,h6')) {
-    if (el.getBoundingClientRect().top <= top + 50) heading = el; else break;
-  }
-  return { id: heading?.id, offset: heading ? heading.getBoundingClientRect().top - top : 0, scroll: viewport.scrollTop };
+  const heading = headingAt(top + 50);
+  return { id: heading?.dataset.headingId, offset: heading ? heading.getBoundingClientRect().top - top : 0, scroll: viewport.scrollTop };
 }
-function decorateCode(payload: Payload) {
-  article.querySelectorAll<HTMLPreElement>('pre[data-code]').forEach(pre => {
+function decorateCode(root: ParentNode, payload: Payload) {
+  root.querySelectorAll<HTMLPreElement>('pre[data-code]').forEach(pre => {
     const block = payload.code_blocks[Number(pre.dataset.code)];
     if (!block) return;
     const wrapper = document.createElement('div'); wrapper.className = 'code-block';
@@ -81,11 +99,11 @@ function decorateCode(payload: Payload) {
     };
     toolbar.append(label, button); pre.before(wrapper); wrapper.append(toolbar, pre);
   });
-  article.querySelectorAll('table').forEach(table => {
+  root.querySelectorAll('table').forEach(table => {
     const wrapper = document.createElement('div'); wrapper.className = 'table-scroll'; wrapper.tabIndex = 0; wrapper.setAttribute('aria-label', 'Scrollable Markdown table');
     table.before(wrapper); wrapper.append(table);
   });
-  article.querySelectorAll('img').forEach(img => {
+  root.querySelectorAll('img').forEach(img => {
     if (img.getAttribute('src')?.startsWith('marklight-image://localhost/')) {
       const token = img.getAttribute('src')!.split('/').at(-1)!;
       img.src = convertFileSrc(token, 'marklight-image');
@@ -100,25 +118,55 @@ function decorateCode(payload: Payload) {
     }
   });
 }
-function render(payload: Payload, preserve = false, anchor?: string | null) {
+async function render(payload: Payload, preserve = false, anchor?: string | null, request = openRequest) {
   const reading = preserve ? context() : null;
-  current = payload; article.innerHTML = payload.html;
+  const template = document.createElement('template');
+  template.innerHTML = payload.html;
+  const content = template.content;
+  decorateCode(content, payload);
+  if (request !== openRequest) return;
+  const nextHeadings = new Map<string, HTMLElement>();
+  // Keep canonical Markdown anchors separate from the reader's DOM identifiers.
+  for (const heading of content.querySelectorAll<HTMLElement>('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]')) {
+    const id = heading.id;
+    heading.dataset.headingId = id;
+    heading.id = `markdown-heading-${id}`;
+    nextHeadings.set(id, heading);
+  }
+  let body = content;
+  if (content.childElementCount > 400) {
+    body = document.createDocumentFragment();
+    while (content.firstChild) {
+      const chunk = document.createElement('div'); chunk.className = 'document-chunk';
+      for (let count = 0; count < 200 && content.firstChild; count++) chunk.append(content.firstChild);
+      body.append(chunk);
+      await yieldToUi();
+      if (request !== openRequest) return;
+    }
+  }
+  current = payload; article.replaceChildren(body);
+  documentHeadings.clear();
+  nextHeadings.forEach((heading, id) => documentHeadings.set(id, heading));
+  headingElements = Array.from(documentHeadings.values());
   article.hidden = false; $('welcome').hidden = true;
   $('file-name').textContent = payload.name; $('file-name').title = payload.path;
   document.title = `${payload.name} — Marklight`;
   $('status').textContent = `${payload.metadata.words.toLocaleString()} WORDS · ${payload.metadata.reading_minutes} MIN READ · LIVE RELOAD`;
-  decorateCode(payload);
   const outline = $('outline'); outline.replaceChildren();
+  outlineLinks.clear(); activeOutline = null;
+  const outlineContent = document.createDocumentFragment();
   for (const heading of payload.headings) {
     const link = document.createElement('a'); link.href = `#${heading.id}`; link.textContent = heading.text;
     link.dataset.heading = heading.id; link.style.paddingLeft = `${10 + (heading.level - 1) * 10}px`;
-    link.onclick = event => { event.preventDefault(); scrollToHeading(heading.id); }; outline.append(link);
+    link.onclick = event => { event.preventDefault(); scrollToHeading(heading.id); }; outlineContent.append(link);
+    outlineLinks.set(heading.id, link);
   }
+  outline.append(outlineContent);
   if (!payload.headings.length) { const empty = document.createElement('p'); empty.className = 'muted'; empty.textContent = 'No headings in this document.'; outline.append(empty); }
   recents(payload.recent);
   if (reading) {
-    const heading = reading.id && document.getElementById(reading.id);
-    viewport.scrollTop = heading && article.contains(heading) ? viewport.scrollTop + heading.getBoundingClientRect().top - viewport.getBoundingClientRect().top - reading.offset : reading.scroll;
+    const heading = reading.id && documentHeadings.get(reading.id);
+    viewport.scrollTop = heading ? viewport.scrollTop + heading.getBoundingClientRect().top - viewport.getBoundingClientRect().top - reading.offset : reading.scroll;
   } else viewport.scrollTop = 0;
   if (!$('search-bar').hidden) search(false);
   if (anchor) scrollToHeading(anchor);
@@ -126,7 +174,23 @@ function render(payload: Payload, preserve = false, anchor?: string | null) {
   if (payload.warning) notify(payload.warning, true);
 }
 function open(path: string, anchor?: string | null) {
-  enqueue(async () => { render(await invoke<Payload>('open_document', { path, dark: dark() }), false, anchor); });
+  const request = ++openRequest;
+  $('status').textContent = `OPENING ${path.split(/[/\\]/).at(-1) ?? path}…`;
+  viewport.setAttribute('aria-busy', 'true');
+  enqueue(async () => {
+    if (request !== openRequest) return;
+    try {
+      const payload = await invoke<Payload>('open_document', { path, dark: dark() });
+      if (request === openRequest) await render(payload, false, anchor, request);
+    } finally {
+      if (request === openRequest) {
+        viewport.removeAttribute('aria-busy');
+        if (current) $('status').textContent = `${current.metadata.words.toLocaleString()} WORDS · ${current.metadata.reading_minutes} MIN READ · LIVE RELOAD`;
+        else $('status').textContent = 'LOCAL FILES. QUIET READING.';
+        updateProgress();
+      }
+    }
+  });
 }
 async function chooseFile() {
   if (openingDialog) return;
@@ -138,20 +202,18 @@ async function chooseFile() {
 function reload() {
   if (!current || !native) return;
   clearTimeout(reloadTimer);
-  reloadTimer = setTimeout(() => enqueue(async () => { render(await invoke<Payload>('reload_document', { dark: dark() }), true); }), 120);
+  reloadTimer = setTimeout(() => enqueue(async () => { await render(await invoke<Payload>('reload_document', { dark: dark() }), true); }), 120);
 }
 function updateProgress() {
   const range = viewport.scrollHeight - viewport.clientHeight;
-  $('reading-progress').textContent = current ? `${range > 0 ? Math.round(viewport.scrollTop / range * 100) : 100}%` : '—';
   const top = viewport.getBoundingClientRect().top;
-  let active = current?.headings[0]?.id;
-  for (const heading of article.querySelectorAll<HTMLElement>('h1,h2,h3,h4,h5,h6')) {
-    if (heading.getBoundingClientRect().top <= top + 90) active = heading.id; else break;
+  const active = headingAt(top + 90)?.dataset.headingId ?? current?.headings[0]?.id;
+  const next = active ? outlineLinks.get(active) ?? null : null;
+  if (next !== activeOutline) {
+    activeOutline?.classList.remove('active'); activeOutline?.removeAttribute('aria-current');
+    next?.classList.add('active'); next?.setAttribute('aria-current', 'location'); activeOutline = next;
   }
-  $('outline').querySelectorAll<HTMLAnchorElement>('a').forEach(link => {
-    const selected = link.dataset.heading === active;
-    link.classList.toggle('active', selected); if (selected) link.setAttribute('aria-current', 'location'); else link.removeAttribute('aria-current');
-  });
+  $('reading-progress').textContent = current ? `${range > 0 ? Math.round(viewport.scrollTop / range * 100) : 100}%` : '—';
 }
 function openSearch() { $('search-bar').hidden = false; $<HTMLInputElement>('search-input').focus(); $<HTMLInputElement>('search-input').select(); }
 function closeSearch() { clearTimeout(searchTimer); $('search-bar').hidden = true; clearHighlights(article); matches = []; matchIndex = -1; viewport.focus(); }
@@ -186,6 +248,7 @@ systemDark.onchange = () => { if (config.theme === 'system') { applyPreferences(
 article.onclick = event => {
   const link = (event.target as Element).closest('a'); if (!link) return;
   event.preventDefault(); const href = link.getAttribute('href'); if (!href) return;
+  if (viewport.getAttribute('aria-busy') === 'true') return;
   enqueue(async () => {
     const navigation = await invoke<Navigation>('follow_link', { href });
     if (navigation.kind === 'anchor') scrollToHeading(navigation.id);

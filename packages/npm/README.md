@@ -35,7 +35,7 @@ Linux, Windows and Intel Mac users can build the CLI from Rust source:
 cargo install --git https://github.com/OthmaneBlial/marklight marklight
 ```
 
-Other platforms are not runtime validated in v0.1.0. This package deliberately
+Other platforms are not runtime validated in v0.1.1. This package deliberately
 rejects unsupported architectures rather than downloading an untested binary.
 Upgrade with `npm install --global marklight@latest`.
 

@@ -39,6 +39,13 @@ Raw HTML is separately reduced to basic formatting; generated HTML is then
 allowlist sanitized. The reading DOM uses ordinary selectable text. Code-copy
 buttons refer to original source code in the payload, not highlighted HTML.
 
+The frontend assembles rendered content outside the live document. Dense
+documents are grouped into chunks with deferred offscreen layout; their text
+and DOM nodes remain present. Assembly yields between chunks and checks for a
+newer open request. Canonical heading anchors map to separate DOM identifiers
+so headings named after reader controls cannot overwrite those controls.
+Active-heading lookup uses a binary search and changes only two outline links.
+
 Image requests use a custom Tauri URI protocol with opaque generation tokens.
 Only referenced local raster files in the document directory tree are granted;
 no unrestricted filesystem plugin is exposed to JavaScript. Tokens expire on

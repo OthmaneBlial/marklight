@@ -8,8 +8,9 @@ import tempfile
 from pathlib import Path
 
 root = Path(__file__).resolve().parent.parent
+version = json.loads((root/'packages/npm/package.json').read_text())['version']
 parser = argparse.ArgumentParser()
-parser.add_argument('package', nargs='?', default=str(root/'artifacts/npm/marklight-0.1.0.tgz'))
+parser.add_argument('package', nargs='?', default=str(root/f'artifacts/npm/marklight-{version}.tgz'))
 args = parser.parse_args()
 package = args.package
 if package.endswith('.tgz'):
@@ -26,7 +27,8 @@ with tempfile.TemporaryDirectory(prefix='npm-smoke-', dir=root/'artifacts') as t
     prefix = Path(temporary)
     subprocess.run(['npm','install','--global','--prefix',str(prefix),'--ignore-scripts',package], check=True)
     cli = prefix/'bin/marklight'
-    assert subprocess.check_output([str(cli),'--version'], text=True).strip() == 'marklight 0.1.0'
+    installed = json.loads((prefix/'lib/node_modules/marklight/package.json').read_text())
+    assert subprocess.check_output([str(cli),'--version'], text=True).strip() == f"marklight {installed['version']}"
     assert '--no-pager' in subprocess.check_output([str(cli),'--help'], text=True)
     fixture = root/'fixtures/markdown/gfm.md'
     rendered = subprocess.check_output([str(cli), str(fixture), '--plain','--no-pager','--width','60'])

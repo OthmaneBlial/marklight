@@ -1,6 +1,6 @@
 {
   "name": "marklight",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Offline Markdown terminal reader in Rust — macOS Apple Silicon binary",
   "license": "MIT",
   "repository": { "type": "git", "url": "git+https://github.com/OthmaneBlial/marklight.git", "directory": "packages/npm" },

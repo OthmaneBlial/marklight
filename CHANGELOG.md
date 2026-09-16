@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.1.1 — 2026-09-16
+
+- Keep recent-file opening responsive on dense documents by preparing HTML
+  outside the live document, yielding during assembly and deferring layout of
+  offscreen chunks. A newer open request supersedes an unfinished earlier one.
+- Show which file is opening and keep the outline in its own scroll area so
+  recent files remain reachable.
+- Find the active heading with a binary search and update only the previous
+  and new outline selection, avoiding document-wide work on every scroll.
+- Preserve headings named after reader controls, such as “Status”, “Document”
+  and “Font reset”. Canonical Markdown anchors now resolve through a document
+  heading map, with separate DOM identifiers for rendered headings.
+- Keep outline navigation, local anchors and reading-context reload working
+  with the separate heading identifiers.
+- Add a regression test for control-name collisions and duplicate DOM IDs.
+- Synchronize CLI, desktop and npm package versions to 0.1.1.
+
 ## 0.1.0 — 2026-09-16
 
 Initial pre-1.0 Markdown reader.

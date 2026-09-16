@@ -1,8 +1,8 @@
 import { test, expect, type Page } from '@playwright/test';
 import { readFileSync, mkdirSync } from 'node:fs';
-const fixtures = Object.fromEntries(['gfm','basic','links','huge','malicious-html','unicode','tables','code'].map(name => [name, JSON.parse(readFileSync(new URL(`../../../artifacts/frontend-fixtures/${name}.json`, import.meta.url), 'utf8'))]));
-async function reader(page: Page, initial = 'gfm') {
-  await page.addInitScript(({ fixtures, initial }) => {
+const fixtures = Object.fromEntries(['gfm','basic','links','huge','malicious-html','unicode','tables','code','ui-collisions'].map(name => [name, JSON.parse(readFileSync(new URL(`../../../artifacts/frontend-fixtures/${name}.json`, import.meta.url), 'utf8'))]));
+async function reader(page: Page, initial = 'gfm', recentNames: string[] = []) {
+  await page.addInitScript(({ fixtures, initial, recentNames }) => {
     const w = window as any;
     w.isTauri = true;
     let id = 0;
@@ -10,7 +10,7 @@ async function reader(page: Page, initial = 'gfm') {
     const events = new Map<string, number[]>();
     let active = initial;
     let pending: string | null = fixtures[initial].path;
-    const config = { theme: 'system', font_size: 16, toc: true, zen_mode: false, recent: [] as string[] };
+    const config = { theme: 'system', font_size: 16, toc: true, zen_mode: false, recent: recentNames.map(name => fixtures[name].path) as string[] };
     w.testCommands = [];
     w.testEmit = (event: string, payload: unknown = null) => (events.get(event) ?? []).forEach(handler => callbacks.get(handler)?.({ event, payload }));
     w.testReload = null;
@@ -29,6 +29,7 @@ async function reader(page: Page, initial = 'gfm') {
         if (command === 'clear_recent') { config.recent = []; return; }
         if (command === 'choose_file') return fixtures.basic.path;
         if (command === 'open_document') {
+          if (w.testOpenDelay) await new Promise(resolve => setTimeout(resolve, w.testOpenDelay));
           active = Object.keys(fixtures).find(name => fixtures[name].path === args.path) ?? '';
           if (!active) throw new Error('File not found');
           config.recent = [args.path, ...config.recent.filter(path => path !== args.path)].slice(0, 12);
@@ -44,10 +45,50 @@ async function reader(page: Page, initial = 'gfm') {
       },
     };
     w.__TAURI_EVENT_PLUGIN_INTERNALS__ = { unregisterListener: () => {} };
-  }, { fixtures, initial });
+  }, { fixtures, initial, recentNames });
   await page.goto('/');
-  await expect(page.locator('#document')).toBeVisible();
+  await expect(page.locator('article#document')).toBeVisible();
 }
+
+test('heading names cannot overwrite controls and anchors target the document', async ({ page }) => {
+  await reader(page, 'ui-collisions');
+  const article = page.locator('article#document');
+  await expect(article.locator('h1')).toHaveText('Document');
+  await expect(article.locator('h2').first()).toHaveText('Status');
+  await expect(page.locator('footer #status')).toContainText('WORDS');
+  await page.getByRole('button', { name: 'Increase font size' }).click();
+  await expect(page.locator('footer #font-reset')).toHaveText('17px');
+  await expect(article.locator('h2').nth(1)).toHaveText('Font reset');
+  await page.locator('#outline a[data-heading="sidebar"]').click();
+  await expect(article.locator('h2').last()).toBeFocused();
+  await article.getByRole('link', { name: 'Return to Document' }).click();
+  await expect(article.locator('h1')).toBeFocused();
+  await article.getByRole('link', { name: 'Return to Status' }).click();
+  await expect(article.locator('h2').first()).toBeFocused();
+  expect(await page.evaluate(() => {
+    const ids = Array.from(document.querySelectorAll('[id]'), el => el.id);
+    return new Set(ids).size === ids.length;
+  })).toBe(true);
+});
+
+test('recent files open chunked documents and a newer click wins during loading', async ({ page }) => {
+  await reader(page, 'gfm', ['huge', 'basic']);
+  await page.locator('#recent button').filter({ hasText: 'huge.md' }).click();
+  await expect(page.locator('#file-name')).toHaveText('huge.md');
+  expect(await page.locator('#document .document-chunk').count()).toBeGreaterThan(1);
+  await page.locator('#recent button').filter({ hasText: 'basic.md' }).click();
+  await expect(page.locator('#file-name')).toHaveText('basic.md');
+  await expect(page.locator('#document h1')).toHaveText('Marklight');
+  await page.evaluate(() => { (window as any).testOpenDelay = 250; });
+  await page.locator('#recent button').filter({ hasText: 'huge.md' }).click();
+  await expect(page.locator('footer #status')).toHaveText('OPENING huge.md…');
+  await expect(page.locator('#viewport')).toHaveAttribute('aria-busy', 'true');
+  await page.locator('#recent button').filter({ hasText: 'basic.md' }).click();
+  await expect(page.locator('#viewport')).not.toHaveAttribute('aria-busy', 'true');
+  await expect(page.locator('#file-name')).toHaveText('basic.md');
+  await expect(page.locator('#document h1')).toHaveText('Marklight');
+  await expect(page.locator('footer #status')).toContainText('WORDS');
+});
 
 test('actual Rust HTML renders and exact original code copies; normal text selects', async ({ page, context }) => {
   const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
@@ -104,16 +145,14 @@ test('font, theme, outline, zen and narrow layout stay usable', async ({ page })
 test('outline navigation and reload preserve the active heading context', async ({ page }) => {
   await reader(page,'huge');
   await page.locator('#outline a[data-heading="section-400"]').click();
-  const heading = page.locator('#section-400');
+  const heading = page.locator('#document [data-heading-id="section-400"]');
   const before = await heading.evaluate(el => el.getBoundingClientRect().top - document.getElementById('viewport')!.getBoundingClientRect().top);
-  await page.evaluate(() => {
+  await page.evaluate(payload => {
     const w = window as any;
-    const doc = document.getElementById('document')!;
-    w.testReload = { ...(w.testReload ?? {}), path: 'huge.md', name: 'huge.md', html: '<p>New material above your reading position.</p>'.repeat(40) + doc.innerHTML,
-      headings: Array.from(doc.querySelectorAll('h1,h2')).map(el => ({ id: el.id, text: el.textContent, level: Number(el.tagName.slice(1)) })),
-      code_blocks: [], metadata: { words: 12000, reading_minutes: 55 }, warning: null };
+    w.testReload = { ...payload, html: '<p>New material above your reading position.</p>'.repeat(40) + payload.html,
+      metadata: { words: 12000, reading_minutes: 55 } };
     w.testEmit('document-changed');
-  });
+  }, fixtures.huge);
   await expect(page.locator('#document p').first()).toHaveText('New material above your reading position.');
   const after = await heading.evaluate(el => el.getBoundingClientRect().top - document.getElementById('viewport')!.getBoundingClientRect().top);
   expect(Math.abs(after - before)).toBeLessThan(3);

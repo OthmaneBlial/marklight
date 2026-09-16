@@ -2347,7 +2347,7 @@ checksum = "3e2e65a1a2e43cfcb47a895c4c8b10d1f4a61097f9f254f183aee60cad9c651d"
 
 [[package]]
 name = "marklight"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "clap",
  "marklight-core",
@@ -2359,7 +2359,7 @@ dependencies = [
 
 [[package]]
 name = "marklight-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "directories",
  "linkify",
@@ -2375,7 +2375,7 @@ dependencies = [
 
 [[package]]
 name = "marklight-desktop"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "arboard",
  "marklight-core",
@@ -2392,7 +2392,7 @@ dependencies = [
 
 [[package]]
 name = "marklight-render"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "ammonia",
  "marklight-core",
