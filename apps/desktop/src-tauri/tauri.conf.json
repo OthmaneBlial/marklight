@@ -1,0 +1,28 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Marklight",
+  "version": "0.1.0",
+  "identifier": "dev.marklight.reader",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [{ "label": "main", "title": "Marklight", "width": 1120, "height": 800, "minWidth": 400, "minHeight": 400 }],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' marklight-image: http://marklight-image.localhost; connect-src ipc: http://ipc.localhost; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'"
+    }
+  },
+  "bundle": {
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/256x256.png", "icons/icon.icns", "icons/icon.ico"],
+    "active": true,
+    "targets": "all",
+    "category": "Utility",
+    "shortDescription": "A dedicated Markdown reader",
+    "longDescription": "Read local Markdown comfortably, with a document outline, search and live reload. No editor, account or telemetry.",
+    "fileAssociations": [{ "ext": ["md", "markdown"], "name": "Markdown document", "description": "Markdown document", "mimeType": "text/markdown", "role": "Viewer" }],
+    "macOS": { "minimumSystemVersion": "12.0" }
+  }
+}

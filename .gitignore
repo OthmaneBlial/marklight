@@ -6,3 +6,5 @@
 .env
 .env.*
 *.log
+/apps/desktop/src-tauri/gen/
+/apps/desktop/test-results/

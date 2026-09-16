@@ -1,0 +1,15 @@
+{
+  "name": "marklight-desktop-ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 1420 --strictPort",
+    "check": "tsc --noEmit",
+    "build": "npm run check && vite build",
+    "test": "playwright test",
+    "tauri": "tauri"
+  },
+  "dependencies": { "@tauri-apps/api": "2.11.1" },
+  "devDependencies": { "@tauri-apps/cli": "2.11.4", "typescript": "7.0.2", "vite": "8.3.0", "@playwright/test": "1.63.0" }
+}

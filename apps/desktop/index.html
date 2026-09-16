@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Marklight</title></head>
+<body>
+  <header class="toolbar">
+    <a class="wordmark" href="#" aria-label="Marklight home"><span class="logo" aria-hidden="true">m<span>↓</span></span> Marklight</a>
+    <span id="file-name" class="file-name">Your next good read.</span>
+    <nav aria-label="Reader controls">
+      <button id="open" class="primary" title="Open Markdown (⌘/Ctrl O)">Open file <span aria-hidden="true">↗</span></button>
+      <button id="toggle-toc" title="Toggle outline (⌘/Ctrl Shift T)" aria-label="Toggle outline" aria-pressed="true">☷</button>
+      <button id="toggle-search" title="Search (⌘/Ctrl F)" aria-label="Search document">⌕</button>
+      <button id="toggle-zen" title="Zen mode (⌘/Ctrl Shift Z)" aria-label="Toggle zen mode" aria-pressed="false">⛶</button>
+      <select id="theme" aria-label="Colour theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select>
+    </nav>
+  </header>
+  <div id="search-bar" class="search-bar" role="search" hidden>
+    <label for="search-input">Find in document</label><input id="search-input" type="search" placeholder="Search this read…" autocomplete="off">
+    <output id="match-count" aria-live="polite">0 matches</output>
+    <button id="previous-match" aria-label="Previous match">↑</button><button id="next-match" aria-label="Next match">↓</button>
+    <button id="close-search" aria-label="Close search">×</button>
+  </div>
+  <div class="layout">
+    <aside id="sidebar" aria-label="Document navigation">
+      <div class="sidebar-label">IN THIS DOCUMENT</div>
+      <nav id="outline" aria-label="Table of contents"><p class="muted">An outline will appear here.</p></nav>
+      <div class="recent-section"><div class="sidebar-label">RECENT READS <button id="clear-recent" title="Clear recent files" aria-label="Clear recent files">×</button></div><ul id="recent"></ul></div>
+      <p class="sidebar-foot">A little less syntax.<br>A little more clarity.</p>
+    </aside>
+    <main id="viewport" tabindex="0" aria-label="Markdown reading area">
+      <section id="welcome" class="welcome">
+        <span class="eyebrow">THE MARKDOWN READER</span>
+        <h1>Written in Markdown.<br><em>Made for reading.</em></h1>
+        <p>Give your documents a little breathing room.<br>Open a file, settle in, and read.</p>
+        <button id="welcome-open" class="primary">Choose a Markdown file <span aria-hidden="true">↗</span></button>
+        <div class="drop-hint">or drop a <code>.md</code> file anywhere</div>
+        <div class="welcome-details"><span>Rust at the core</span><span>Completely offline</span><span>Just a reader</span></div>
+      </section>
+      <article id="document" class="markdown" aria-label="Rendered Markdown" hidden></article>
+    </main>
+  </div>
+  <footer id="status-bar"><span id="status">LOCAL FILES. QUIET READING.</span><div class="font-controls"><button id="font-down" aria-label="Decrease font size">A−</button><button id="font-reset" title="Reset font size">16px</button><button id="font-up" aria-label="Increase font size">A+</button></div><span id="reading-progress">—</span></footer>
+  <button id="leave-zen" title="Leave zen mode" aria-label="Leave zen mode" hidden>⛶</button>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <div id="drop-overlay" hidden>Drop it. Read it.</div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

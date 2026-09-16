@@ -16,11 +16,11 @@ static THEMES: LazyLock<ThemeSet> = LazyLock::new(ThemeSet::load_defaults);
 #[derive(Default)]
 pub struct HtmlOptions<'a> {
     /// Map local image references to opaque, scoped URLs. No images by default.
-    pub image_url: Option<&'a ImageResolver>,
+    pub image_url: Option<&'a ImageResolver<'a>>,
     pub dark: bool,
 }
 
-type ImageResolver = dyn Fn(&str) -> Option<String>;
+type ImageResolver<'a> = dyn Fn(&str) -> Option<String> + 'a;
 
 pub fn render_html(document: &Document, options: &HtmlOptions<'_>) -> String {
     let mut heading = 0;
