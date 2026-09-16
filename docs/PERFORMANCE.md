@@ -3,7 +3,9 @@
 Measured 2026-09-16 on Apple M2 / arm64, macOS 26.6, Rust stable 1.95, release
 build with thin LTO. Raw samples and host metadata are in
 [measurements.json](measurements.json). These are development-host measurements,
-not a cross-platform latency guarantee or a memory ceiling.
+not a cross-platform latency guarantee or a memory ceiling. These samples were
+recorded for the initial 0.1.0 development build. Version 0.1.1 changes desktop
+layout and recent-file switching; the table is not a benchmark of that patch.
 
 ## Shared Rust kernels
 
