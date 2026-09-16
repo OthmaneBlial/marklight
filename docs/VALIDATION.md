@@ -19,6 +19,7 @@ disabled in its repository settings.
 | Native app | Release `custom-protocol` build; embedded frontend opens offline at `tauri://localhost`, without a development server |
 | Native selection/copy | macOS native WebView: code-copy button then pasteboard byte equality, including final newline; normal mouse selection across two paragraphs then Cmd+C |
 | Native opening | Cmd+O opens the native filtered picker and selected GFM file; CLI forwarding opens another document in the same primary instance; `open -a Marklight.app basic.md` reaches OS file opening |
+| Native menus | View → Zen produces the reading-only layout; Escape exits; native Increase Text Size shows 17 px and Reset restores 16 px |
 | Native links/images | Local Markdown link opens its target at Section 20; referenced local raster image is present; remote image shows an unavailable note |
 | Native watching | Atomic replacement inserts 20 paragraphs above the visible Section 20; new word count/content arrives and Section 20 retains its visual position |
 | macOS packaging | App ZIP, simple DMG and CLI archive; DMG CRC verification, read-only mount, matching native binary SHA-256, Applications symlink, local ad-hoc resource seal verification; extracted CLI runs the actual GFM golden |
@@ -38,6 +39,9 @@ Reproduction: `scripts/check.sh`, `scripts/check-npm.py`,
   `docs/images/` are interface captures with that adapter, not native screenshots.
 - Native drag/drop is implemented through Tauri and its frontend callback is
   tested. A real Finder drag/drop gesture was not independently recorded.
+- Font/Zen key chords were verified in browser logic; native menu actions and
+  registered equivalents were checked separately. Automated native key-chord
+  activation for those actions was inconclusive.
 - Semantic controls/headings and visible keyboard focus are present in the
   native accessibility tree. A full VoiceOver/NVDA or WCAG audit has not run.
 - The macOS app has a **local ad-hoc seal**, not a Developer ID signature or

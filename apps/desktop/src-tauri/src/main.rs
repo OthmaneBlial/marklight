@@ -255,6 +255,38 @@ fn main() {
         })
         .setup(|app| {
             let open = MenuItem::with_id(app, "open", "Open…", true, Some("CmdOrCtrl+O"))?;
+            let find =
+                MenuItem::with_id(app, "find", "Find in Document…", true, Some("CmdOrCtrl+F"))?;
+            let outline = MenuItem::with_id(
+                app,
+                "outline",
+                "Toggle Outline",
+                true,
+                Some("CmdOrCtrl+Shift+T"),
+            )?;
+            let zen = MenuItem::with_id(
+                app,
+                "zen",
+                "Toggle Zen Mode",
+                true,
+                Some("CmdOrCtrl+Shift+Z"),
+            )?;
+            let larger = MenuItem::with_id(
+                app,
+                "larger",
+                "Increase Text Size",
+                true,
+                Some("CmdOrCtrl+="),
+            )?;
+            let smaller = MenuItem::with_id(
+                app,
+                "smaller",
+                "Decrease Text Size",
+                true,
+                Some("CmdOrCtrl+-"),
+            )?;
+            let reset =
+                MenuItem::with_id(app, "reset", "Reset Text Size", true, Some("CmdOrCtrl+0"))?;
             let menu = Menu::with_items(
                 app,
                 &[
@@ -283,12 +315,30 @@ fn main() {
                             &PredefinedMenuItem::select_all(app, None)?,
                         ],
                     )?,
+                    &Submenu::with_items(
+                        app,
+                        "View",
+                        true,
+                        &[
+                            &find,
+                            &outline,
+                            &zen,
+                            &PredefinedMenuItem::separator(app)?,
+                            &larger,
+                            &smaller,
+                            &reset,
+                        ],
+                    )?,
                 ],
             )?;
             app.set_menu(menu)?;
             app.on_menu_event(|app, event| {
                 if event.id().as_ref() == "open" {
                     let _ = app.emit("menu-open", ());
+                } else if ["find", "outline", "zen", "larger", "smaller", "reset"]
+                    .contains(&event.id().as_ref())
+                {
+                    let _ = app.emit("reader-action", event.id().as_ref());
                 }
             });
             Ok(())

@@ -109,6 +109,8 @@ systems. Current host package evidence and signing limits are recorded in
 
 ## Keyboard shortcuts
 
+The native View menu also provides search, outline, zen and font controls.
+
 | Action | macOS | Windows/Linux |
 |---|---|---|
 | Open | Cmd+O | Ctrl+O |

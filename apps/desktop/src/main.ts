@@ -209,6 +209,14 @@ async function startup() {
   const pending = async () => { const path = await invoke<string | null>('take_pending'); if (path) open(path); };
   await listen('open-request', () => { void pending().catch(error => notify(String(error), true)); });
   await listen('menu-open', () => { void chooseFile(); });
+  await listen<string>('reader-action', event => {
+    if (event.payload === 'find') openSearch();
+    else if (event.payload === 'outline') toggleToc();
+    else if (event.payload === 'zen') toggleZen();
+    else if (event.payload === 'larger') font(1);
+    else if (event.payload === 'smaller') font(-1);
+    else if (event.payload === 'reset') font(0);
+  });
   await listen('document-changed', reload);
   await getCurrentWebviewWindow().onDragDropEvent(event => {
     $('drop-overlay').hidden = event.payload.type === 'leave' || event.payload.type === 'drop';

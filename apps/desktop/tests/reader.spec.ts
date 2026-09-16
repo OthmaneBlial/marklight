@@ -131,6 +131,14 @@ test('native drop/menu wiring, relative Markdown links and recent history', asyn
   await expect(page.locator('#file-name')).toHaveText('unicode.md');
   await page.evaluate(() => (window as any).testEmit('menu-open'));
   await expect(page.locator('#file-name')).toHaveText('basic.md');
+  await page.evaluate(() => (window as any).testEmit('reader-action', 'larger'));
+  await expect(page.locator('#font-reset')).toHaveText('17px');
+  await page.evaluate(() => (window as any).testEmit('reader-action', 'reset'));
+  await expect(page.locator('#font-reset')).toHaveText('16px');
+  await page.evaluate(() => (window as any).testEmit('reader-action', 'zen'));
+  await expect(page.locator('.toolbar')).toBeHidden();
+  await page.evaluate(() => (window as any).testEmit('reader-action', 'zen'));
+  await expect(page.locator('.toolbar')).toBeVisible();
   await page.locator('#clear-recent').click(); await expect(page.locator('#recent li')).toHaveCount(0);
 });
 

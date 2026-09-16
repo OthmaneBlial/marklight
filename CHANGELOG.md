@@ -14,6 +14,7 @@ Initial pre-1.0 Markdown reader.
   drag/drop, system/light/dark themes, font shortcuts and zen mode.
 - Directory-based file watching, debounced reload and reading-context retention.
 - Single-instance opening and `.md`/`.markdown` bundle associations.
+- Native View menu for find, outline, zen and reading-font commands.
 - Local Rust and browser tests; no GitHub Actions or telemetry.
 - Bounded reuse of identical highlighted code blocks, avoiding repeated
   syntax work without dropping large-code highlighting.
