@@ -1,0 +1,11 @@
+[package]
+name = "marklight-desktop"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Marklight desktop reader"
+
+[dependencies]
+marklight-core.workspace = true
+marklight-render.workspace = true

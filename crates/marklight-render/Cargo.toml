@@ -1,0 +1,15 @@
+[package]
+name = "marklight-render"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Terminal and sanitized HTML renderers for Marklight"
+
+[dependencies]
+marklight-core.workspace = true
+pulldown-cmark.workspace = true
+ammonia = "4"
+textwrap = "0.16"
+unicode-width = "0.2"
+syntect = { version = "5", default-features = false, features = ["default-fancy"] }

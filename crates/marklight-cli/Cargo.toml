@@ -1,0 +1,21 @@
+[package]
+name = "marklight"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "A fast, lightweight Markdown reader for your terminal"
+
+[[bin]]
+name = "marklight"
+path = "src/main.rs"
+
+[dependencies]
+marklight-core.workspace = true
+marklight-render.workspace = true
+clap = { version = "4", features = ["derive"] }
+terminal_size = "0.4"
+shell-words = "1"
+
+[dev-dependencies]
+tempfile = "3"
