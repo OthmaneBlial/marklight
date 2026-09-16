@@ -76,7 +76,7 @@ function decorateCode(payload: Payload) {
     const label = document.createElement('span'); label.textContent = block.language || 'plain text';
     const button = document.createElement('button'); button.textContent = 'Copy'; button.setAttribute('aria-label', `Copy ${block.language || 'plain text'} code`);
     button.onclick = async () => {
-      try { await navigator.clipboard.writeText(block.code); button.textContent = 'Copied'; setTimeout(() => { button.textContent = 'Copy'; }, 1500); }
+      try { if (native) await invoke('copy_text', { text: block.code }); else await navigator.clipboard.writeText(block.code); button.textContent = 'Copied'; setTimeout(() => { button.textContent = 'Copy'; }, 1500); }
       catch { notify('Unable to copy. Select the code and use Cmd/Ctrl+C.', true); }
     };
     toolbar.append(label, button); pre.before(wrapper); wrapper.append(toolbar, pre);
@@ -215,5 +215,8 @@ async function startup() {
     if (event.payload.type === 'drop' && event.payload.paths[0]) open(event.payload.paths[0]);
   });
   config = await invoke<Config>('get_config'); applyPreferences(); recents(config.recent); await pending();
+  await actions;
+  await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+  await invoke('reader_ready');
 }
 void startup().catch(error => notify(String(error), true));

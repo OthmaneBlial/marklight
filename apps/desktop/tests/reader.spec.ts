@@ -21,6 +21,7 @@ async function reader(page: Page, initial = 'gfm') {
       unregisterCallback: (id: number) => callbacks.delete(id),
       invoke: async (command: string, args: any = {}) => {
         w.testCommands.push({ command, args });
+        if (command === 'copy_text') return navigator.clipboard.writeText(args.text);
         if (command === 'plugin:event|listen') { const list = events.get(args.event) ?? []; list.push(args.handler); events.set(args.event, list); return args.handler; }
         if (command === 'get_config') return config;
         if (command === 'take_pending') { const result = pending; pending = null; return result; }

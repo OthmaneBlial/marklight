@@ -2,7 +2,14 @@
 
 mod reader;
 use reader::{Payload, Reader};
-use std::{path::PathBuf, sync::Mutex};
+use std::{
+    path::PathBuf,
+    sync::{
+        Mutex,
+        atomic::{AtomicBool, Ordering},
+    },
+    time::Instant,
+};
 use tauri::{
     Emitter, Manager,
     menu::{Menu, MenuItem, PredefinedMenuItem, Submenu},
@@ -12,6 +19,42 @@ use tauri_plugin_dialog::DialogExt;
 struct State {
     reader: Mutex<Reader>,
     pending: Mutex<Option<PathBuf>>,
+    started: Instant,
+    ready: AtomicBool,
+    clipboard: Mutex<Option<arboard::Clipboard>>,
+}
+
+#[tauri::command]
+fn copy_text(state: tauri::State<'_, State>, text: String) -> Result<(), String> {
+    let mut clipboard = state
+        .clipboard
+        .lock()
+        .map_err(|_| "clipboard is unavailable")?;
+    if clipboard.is_none() {
+        *clipboard = Some(arboard::Clipboard::new().map_err(|e| e.to_string())?);
+    }
+    clipboard
+        .as_mut()
+        .unwrap()
+        .set_text(text)
+        .map_err(|e| e.to_string())
+}
+
+// Opt-in local measurement only; the path comes from the launching process,
+// never from document content or JavaScript. Normal launches write no metrics.
+#[tauri::command]
+fn reader_ready(state: tauri::State<'_, State>) -> Result<(), String> {
+    if let Some(path) = std::env::var_os("MARKLIGHT_BENCH_OUTPUT")
+        && !state.ready.swap(true, Ordering::Relaxed)
+    {
+        let report = serde_json::json!({"ready_ms":state.started.elapsed().as_secs_f64()*1000.0,"pid":std::process::id()});
+        std::fs::write(
+            path,
+            serde_json::to_vec(&report).map_err(|e| e.to_string())?,
+        )
+        .map_err(|e| e.to_string())?;
+    }
+    Ok(())
 }
 
 #[tauri::command]
@@ -147,6 +190,7 @@ fn queue_open(app: &tauri::AppHandle, path: PathBuf) {
 }
 
 fn main() {
+    let started = Instant::now();
     let store = match marklight_core::ConfigStore::platform() {
         Ok(store) => store,
         Err(e) => {
@@ -162,6 +206,9 @@ fn main() {
         .manage(State {
             reader: Mutex::new(Reader::new(store)),
             pending: Mutex::new(initial),
+            started,
+            ready: AtomicBool::new(false),
+            clipboard: Mutex::new(None),
         })
         .plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
             if let Some(path) = args.get(1).filter(|p| !p.starts_with('-')) {
@@ -180,7 +227,9 @@ fn main() {
             save_preferences,
             clear_recent,
             take_pending,
-            follow_link
+            follow_link,
+            reader_ready,
+            copy_text
         ])
         .register_uri_scheme_protocol("marklight-image", |context, request| {
             let token = request.uri().path().trim_start_matches('/');
