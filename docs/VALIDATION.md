@@ -1,5 +1,19 @@
 # Validation — v0.1.1 baseline and current development
 
+## Repeated large-document measurement on 2026-09-19
+
+The local macOS arm64 release build at clean source commit `2e97569` was
+launched three times per generated size and once with the real installation
+guide. [Raw samples](measurements-phase1-repeated.json) identify the binaries
+by SHA-256. The median native-entry-to-layout times were 1,180 ms at 1 MB,
+10,286 ms at 5 MB and 22,598 ms at 10 MB. The latter two miss the provisional
+goals in `PERFORMANCE.md`. A separate opt-in split profile located most of the
+10 MB delay in forced WebKit layout after attaching the dense DOM. Moving focus
+only transferred the cost to progress calculation; halving chunk size led to
+a 90-second readiness timeout on a later native run. Both experiments were
+reverted. Interaction latency and full app-plus-WebKit memory are unmeasured;
+no release speed claim follows from these tests.
+
 ## Manual gate and local package rehearsal on 2026-09-19
 
 The extended `./scripts/check.sh` passed on clean commit `2960518` on macOS

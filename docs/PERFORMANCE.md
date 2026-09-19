@@ -37,6 +37,51 @@ within 500 ms, and visible response to search/outline input within 200 ms on
 results or guarantees on other hardware. Interaction and complete process-tree
 memory baselines still need instrumentation before those goals can be judged.
 
+## Repeated native development profile on 2026-09-19
+
+On clean source commit `2e97569`, a local release-mode macOS arm64 app and CLI
+were identified by SHA-256 in [the raw repeated samples](measurements-phase1-repeated.json).
+The benchmark opened each generated size in **three fresh native processes**,
+without compiling or compressing concurrently. A real, varied guide from this
+repository (`docs/INSTALLATION.md`) also opened in 520 ms on one run. These
+measurements are from the local development build, not a downloaded package.
+
+| Markdown bytes | Native entry → DOM/layout ready, three runs | Median | Provisional goal |
+|---:|---:|---:|---:|
+| 10 KB | 499 / 502 / 493 ms | 499 ms | — |
+| 100 KB | 569 / 557 / 559 ms | 559 ms | — |
+| 1 MB | 1,180 / 1,196 / 1,164 ms | 1,180 ms | ≤1,500 ms |
+| 5 MB | 11,131 / 10,286 / 10,114 ms | 10,286 ms | ≤5,000 ms |
+| 10 MB | 22,598 / 22,910 / 18,418 ms | 22,598 ms | ≤8,000 ms |
+
+The 1 MB goal passed on this corpus; **5 and 10 MB failed**. The first of three
+357-byte launches took 1,090 ms and the next two 509/478 ms, so the cold
+startup and warm 500 ms goals are not established. For 10 MB, the frontend
+reported a median of 19,706 ms inside the overall 22,598 ms readiness time.
+Its broad `outline_ms` bucket accounted for a median 12,682 ms, while initial
+IPC took 2,326 ms, template construction 2,367 ms and progress calculation
+1,546 ms. The broad outline bucket includes showing the document, focus,
+heading indexing and outline painting.
+
+A later, **uncommitted diagnostic build** split that bucket on one 10 MB run:
+native readiness was 21,955 ms, with 11,757 ms in `viewport.focus()` after DOM
+attachment, 65 ms indexing the outline and 20 ms painting its first page.
+Moving focus before attachment gave three readiness samples of 17,676 / 23,760
+/ 22,337 ms (median 22,337 ms). Focus then took approximately 0 ms, but the
+subsequent `scrollHeight`/progress step took 11,186 / 14,925 / 13,580 ms.
+This moved the forced layout cost without meeting the 8-second goal, so the
+focus placement was restored. A second uncommitted experiment halved document
+chunk size to 100 blocks. Its first 10 MB launch took 21,999 ms; the second
+did not report readiness within 90 seconds. The chunk-size change was also
+restored. These experiments do not establish a browser defect or improvement;
+they rule out those two small changes as release fixes on this host.
+
+This intentionally dense corpus repeats headings, tables and code and is not
+representative of every Markdown guide. The benchmark measures native entry to
+DOM/layout readiness, **not first visible paint**, interaction latency, smooth
+scrolling or total app-plus-WebKit memory. The idle RSS sample covers only the
+native process. Those missing measurements remain release gates for phase 1.1.
+
 ## Phase 1 development profile on 2026-09-19
 
 The current development branch uses visible-chunk heading lookup and displays

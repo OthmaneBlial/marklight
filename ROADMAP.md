@@ -45,8 +45,11 @@ un fichier écrit. État au 19 septembre 2026 :
   les téléchargements publics ou les autres OS.
 - [ ] **1.1** Gros documents et mesures end-to-end : lookup des titres et
   sommaire fenêtré implémentés ; [profil expérimental](docs/PERFORMANCE.md#phase-1-development-profile-on-2026-09-19)
-  enregistré. Cible 10 Mo, interactions, guide varié et mémoire complète encore
-  non validés.
+  enregistré. [Trois lancements natifs par taille](docs/measurements-phase1-repeated.json)
+  et un guide varié mesurés : 1 Mo tient la cible provisoire, 5/10 Mo la
+  dépassent nettement. Déplacer le focus n'a pas amélioré la médiane ; une
+  taille de segment réduite a produit un timeout natif et a été annulée.
+  Interactions et mémoire complète encore non validées.
 - [ ] **1.2** Recherche par morceaux avec annulation, plafond exact et sommaire
   filtrable implémentés ; tests Chromium et essai natif à 100 Ko passés.
   Réactivité native mesurée à 1/10 Mo et audit lecteur d'écran encore absents.

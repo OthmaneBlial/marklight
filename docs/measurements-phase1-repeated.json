@@ -1,0 +1,472 @@
+{
+  "host": "macOS-26.6-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "cpu": "Apple M2",
+  "source_commit": "2e975696cf3ef2081593a5c2e670dd9b36b0954a",
+  "source_tree_dirty": false,
+  "cli_sha256": "8065fe604a56ae1f18eaa9c1d524b889a5291a315436760bec6d7c44aafde286",
+  "desktop_sha256": "5796b52d60de87618702b4cd2b383d25f1e114118a0cf95a1470084492eafa0a",
+  "cli_help": {
+    "first_ms": 6.885375012643635,
+    "median_ms": 5.95835450803861,
+    "max_ms": 6.885375012643635,
+    "samples_ms": [
+      6.885375012643635,
+      6.244208023417741,
+      6.123624974861741,
+      5.986457981634885,
+      5.815709009766579,
+      5.808958027046174,
+      5.918166949413717,
+      5.883166042622179,
+      6.138874974567443,
+      5.751041986513883,
+      5.992249993141741,
+      5.936000030487776,
+      5.878624971956015,
+      5.835374991875142,
+      6.002125039231032,
+      5.674582964275032,
+      5.739458021707833,
+      5.994500010274351,
+      6.0747499810531735,
+      5.980708985589445
+    ]
+  },
+  "cli_read": {
+    "first_ms": 6.216207984834909,
+    "median_ms": 6.034687481587753,
+    "max_ms": 6.518708018120378,
+    "samples_ms": [
+      6.216207984834909,
+      6.041417014785111,
+      6.110415968578309,
+      6.167499988805503,
+      6.2314579845406115,
+      6.518708018120378,
+      6.210541992913932,
+      6.213832995854318,
+      6.020625005476177,
+      5.936083965934813,
+      5.922832991927862,
+      5.902083998080343,
+      5.889708001632243,
+      6.033374986145645,
+      6.016124971210957,
+      5.977499997243285,
+      6.005875009577721,
+      6.050625001080334,
+      5.9774170513264835,
+      6.03599997702986
+    ]
+  },
+  "desktop_ready": [
+    {
+      "frontend": {
+        "attach_ms": 1.0,
+        "chunks_ms": 0.0,
+        "decoration_ms": 0.0,
+        "finish_ms": 2.0,
+        "ipc_ms": 36.99999999999997,
+        "outline_ms": 20.0,
+        "progress_ms": 2.0,
+        "recents_ms": 0.0,
+        "scroll_ms": 0.0,
+        "template_ms": 2.0,
+        "total_ms": 25.0
+      },
+      "pid": 34817,
+      "ready_ms": 1089.620541,
+      "observed_wall_ms": 1659.4635419896804,
+      "document_bytes": 357,
+      "document_name": "gfm.md"
+    },
+    {
+      "frontend": {
+        "attach_ms": 0.0,
+        "chunks_ms": 0.0,
+        "decoration_ms": 0.0,
+        "finish_ms": 1.0,
+        "ipc_ms": 37.0,
+        "outline_ms": 18.0,
+        "progress_ms": 1.0,
+        "recents_ms": 0.0,
+        "scroll_ms": 0.0,
+        "template_ms": 0.0,
+        "total_ms": 19.0
+      },
+      "pid": 34840,
+      "ready_ms": 509.257584,
+      "observed_wall_ms": 600.9499169886112,
+      "document_bytes": 357,
+      "document_name": "gfm.md"
+    },
+    {
+      "frontend": {
+        "attach_ms": 0.0,
+        "chunks_ms": 1.0,
+        "decoration_ms": 0.0,
+        "finish_ms": 1.0,
+        "ipc_ms": 37.0,
+        "outline_ms": 17.0,
+        "progress_ms": 1.0,
+        "recents_ms": 0.0,
+        "scroll_ms": 0.0,
+        "template_ms": 0.0,
+        "total_ms": 19.0
+      },
+      "pid": 34851,
+      "ready_ms": 478.16029199999997,
+      "observed_wall_ms": 581.6676670219749,
+      "document_bytes": 357,
+      "document_name": "gfm.md"
+    },
+    {
+      "frontend": {
+        "attach_ms": 0.0,
+        "chunks_ms": 0.0,
+        "decoration_ms": 0.0,
+        "finish_ms": 4.0,
+        "ipc_ms": 45.00000000000003,
+        "outline_ms": 17.99999999999997,
+        "progress_ms": 4.0,
+        "recents_ms": 0.0,
+        "scroll_ms": 0.0,
+        "template_ms": 1.0,
+        "total_ms": 22.99999999999997
+      },
+      "pid": 34966,
+      "ready_ms": 520.394459,
+      "observed_wall_ms": 623.1522499583662,
+      "document_bytes": 6582,
+      "document_name": "INSTALLATION.md"
+    },
+    {
+      "frontend": {
+        "attach_ms": 0.0,
+        "chunks_ms": 1.0,
+        "decoration_ms": 0.0,
+        "finish_ms": 8.0,
+        "ipc_ms": 35.0,
+        "outline_ms": 20.0,
+        "progress_ms": 8.0,
+        "recents_ms": 0.0,
+        "scroll_ms": 0.0,
+        "template_ms": 1.0,
+        "total_ms": 30.0
+      },
+      "pid": 34975,
+      "ready_ms": 498.58425,
+      "observed_wall_ms": 592.2094589914195,
+      "document_bytes": 10000,
+      "document_name": "large-10000.md"
+    },
+    {
+      "frontend": {
+        "attach_ms": 0.0,
+        "chunks_ms": 0.0,
+        "decoration_ms": 1.0,
+        "finish_ms": 7.0,
+        "ipc_ms": 36.0,
+        "outline_ms": 20.0,
+        "progress_ms": 7.0,
+        "recents_ms": 0.0,
+        "scroll_ms": 0.0,
+        "template_ms": 1.0,
+        "total_ms": 29.0
+      },
+      "pid": 34985,
+      "ready_ms": 502.006708,
+      "observed_wall_ms": 601.4225409599021,
+      "document_bytes": 10000,
+      "document_name": "large-10000.md"
+    },
+    {
+      "frontend": {
+        "attach_ms": 0.0,
+        "chunks_ms": 0.0,
+        "decoration_ms": 1.0,
+        "finish_ms": 7.0,
+        "ipc_ms": 36.0,
+        "outline_ms": 20.0,
+        "progress_ms": 7.0,
+        "recents_ms": 0.0,
+        "scroll_ms": 0.0,
+        "template_ms": 1.0,
+        "total_ms": 29.0
+      },
+      "pid": 34995,
+      "ready_ms": 492.878666,
+      "observed_wall_ms": 588.0175409838557,
+      "document_bytes": 10000,
+      "document_name": "large-10000.md"
+    },
+    {
+      "frontend": {
+        "attach_ms": 2.0,
+        "chunks_ms": 13.000000000000028,
+        "decoration_ms": 4.0,
+        "finish_ms": 8.0,
+        "ipc_ms": 54.0,
+        "outline_ms": 44.99999999999997,
+        "progress_ms": 8.0,
+        "recents_ms": 0.0,
+        "scroll_ms": 0.0,
+        "template_ms": 7.0,
+        "total_ms": 79.0
+      },
+      "pid": 35003,
+      "ready_ms": 569.3856659999999,
+      "observed_wall_ms": 669.5205830037594,
+      "document_bytes": 100000,
+      "document_name": "large-100000.md"
+    },
+    {
+      "frontend": {
+        "attach_ms": 1.0,
+        "chunks_ms": 7.0,
+        "decoration_ms": 3.0,
+        "finish_ms": 6.0,
+        "ipc_ms": 56.0,
+        "outline_ms": 44.0,
+        "progress_ms": 6.0,
+        "recents_ms": 0.0,
+        "scroll_ms": 0.0,
+        "template_ms": 7.0,
+        "total_ms": 68.0
+      },
+      "pid": 35012,
+      "ready_ms": 557.456208,
+      "observed_wall_ms": 649.8974999994971,
+      "document_bytes": 100000,
+      "document_name": "large-100000.md"
+    },
+    {
+      "frontend": {
+        "attach_ms": 1.0000000000000284,
+        "chunks_ms": 8.0,
+        "decoration_ms": 3.0,
+        "finish_ms": 7.0,
+        "ipc_ms": 57.0,
+        "outline_ms": 44.99999999999997,
+        "progress_ms": 7.0,
+        "recents_ms": 0.0,
+        "scroll_ms": 0.0,
+        "template_ms": 7.0,
+        "total_ms": 71.0
+      },
+      "pid": 35021,
+      "ready_ms": 558.8619580000001,
+      "observed_wall_ms": 647.4366670008749,
+      "document_bytes": 100000,
+      "document_name": "large-100000.md"
+    },
+    {
+      "frontend": {
+        "attach_ms": 12.0,
+        "chunks_ms": 59.99999999999994,
+        "decoration_ms": 25.000000000000057,
+        "finish_ms": 20.0,
+        "ipc_ms": 249.0,
+        "outline_ms": 298.0,
+        "progress_ms": 20.0,
+        "recents_ms": 0.0,
+        "scroll_ms": 0.0,
+        "template_ms": 73.0,
+        "total_ms": 488.0
+      },
+      "pid": 35044,
+      "ready_ms": 1179.543958,
+      "observed_wall_ms": 1273.3147090184502,
+      "document_bytes": 1000000,
+      "document_name": "large-1000000.md"
+    },
+    {
+      "frontend": {
+        "attach_ms": 11.0,
+        "chunks_ms": 58.0,
+        "decoration_ms": 23.0,
+        "finish_ms": 21.0,
+        "ipc_ms": 253.0,
+        "outline_ms": 295.0,
+        "progress_ms": 21.0,
+        "recents_ms": 0.0,
+        "scroll_ms": 0.0,
+        "template_ms": 73.0,
+        "total_ms": 481.0
+      },
+      "pid": 35054,
+      "ready_ms": 1196.085667,
+      "observed_wall_ms": 1296.3770829956047,
+      "document_bytes": 1000000,
+      "document_name": "large-1000000.md"
+    },
+    {
+      "frontend": {
+        "attach_ms": 12.0,
+        "chunks_ms": 59.0,
+        "decoration_ms": 23.0,
+        "finish_ms": 20.0,
+        "ipc_ms": 245.0,
+        "outline_ms": 295.0,
+        "progress_ms": 20.0,
+        "recents_ms": 0.0,
+        "scroll_ms": 0.0,
+        "template_ms": 71.0,
+        "total_ms": 480.0
+      },
+      "pid": 35067,
+      "ready_ms": 1163.8107909999999,
+      "observed_wall_ms": 1258.1400829949416,
+      "document_bytes": 1000000,
+      "document_name": "large-1000000.md"
+    },
+    {
+      "frontend": {
+        "attach_ms": 229.0,
+        "chunks_ms": 1100.0,
+        "decoration_ms": 429.0,
+        "finish_ms": 572.0,
+        "ipc_ms": 1107.0,
+        "outline_ms": 6039.0,
+        "progress_ms": 569.0,
+        "recents_ms": 3.0,
+        "scroll_ms": 0.0,
+        "template_ms": 1210.0,
+        "total_ms": 9579.0
+      },
+      "pid": 35076,
+      "ready_ms": 11130.711,
+      "observed_wall_ms": 11256.96525000967,
+      "document_bytes": 5000000,
+      "document_name": "large-5000000.md"
+    },
+    {
+      "frontend": {
+        "attach_ms": 214.0,
+        "chunks_ms": 1091.0,
+        "decoration_ms": 352.0,
+        "finish_ms": 309.0,
+        "ipc_ms": 1167.0,
+        "outline_ms": 5396.0,
+        "progress_ms": 308.0,
+        "recents_ms": 1.0,
+        "scroll_ms": 0.0,
+        "template_ms": 1212.0,
+        "total_ms": 8574.0
+      },
+      "pid": 35112,
+      "ready_ms": 10285.927208000001,
+      "observed_wall_ms": 10386.520083993673,
+      "document_bytes": 5000000,
+      "document_name": "large-5000000.md"
+    },
+    {
+      "frontend": {
+        "attach_ms": 210.0,
+        "chunks_ms": 1120.0,
+        "decoration_ms": 391.0,
+        "finish_ms": 405.0,
+        "ipc_ms": 1063.0,
+        "outline_ms": 5327.0,
+        "progress_ms": 401.0,
+        "recents_ms": 4.0,
+        "scroll_ms": 0.0,
+        "template_ms": 1122.0,
+        "total_ms": 8575.0
+      },
+      "pid": 35229,
+      "ready_ms": 10114.454458,
+      "observed_wall_ms": 10224.517291993834,
+      "document_bytes": 5000000,
+      "document_name": "large-5000000.md"
+    },
+    {
+      "frontend": {
+        "attach_ms": 416.9999999999991,
+        "chunks_ms": 1799.000000000001,
+        "decoration_ms": 730.0,
+        "finish_ms": 1711.0,
+        "ipc_ms": 2378.0,
+        "outline_ms": 12682.0,
+        "progress_ms": 1706.0,
+        "recents_ms": 5.0,
+        "scroll_ms": 0.0,
+        "template_ms": 2366.9999999999995,
+        "total_ms": 19706.0
+      },
+      "pid": 35262,
+      "ready_ms": 22597.831,
+      "observed_wall_ms": 22704.30587499868,
+      "document_bytes": 10000000,
+      "document_name": "large-10000000.md"
+    },
+    {
+      "frontend": {
+        "attach_ms": 350.0,
+        "chunks_ms": 2031.0,
+        "decoration_ms": 736.0,
+        "finish_ms": 1551.0,
+        "ipc_ms": 2326.0,
+        "outline_ms": 12792.0,
+        "progress_ms": 1546.0,
+        "recents_ms": 5.0,
+        "scroll_ms": 0.0,
+        "template_ms": 2608.0,
+        "total_ms": 20068.0
+      },
+      "pid": 36157,
+      "ready_ms": 22909.743416,
+      "observed_wall_ms": 23003.87816602597,
+      "document_bytes": 10000000,
+      "document_name": "large-10000000.md"
+    },
+    {
+      "frontend": {
+        "attach_ms": 282.0,
+        "chunks_ms": 1917.0,
+        "decoration_ms": 743.0,
+        "finish_ms": 1151.0,
+        "ipc_ms": 2297.0,
+        "outline_ms": 9255.0,
+        "progress_ms": 1149.0,
+        "recents_ms": 2.0,
+        "scroll_ms": 0.0,
+        "template_ms": 2296.9999999999995,
+        "total_ms": 15645.0
+      },
+      "pid": 36296,
+      "ready_ms": 18418.362083,
+      "observed_wall_ms": 18513.004417007323,
+      "document_bytes": 10000000,
+      "document_name": "large-10000000.md"
+    }
+  ],
+  "desktop_idle_native_only": [
+    {
+      "native_cpu_percent": 0.0,
+      "native_rss_kib": 107952,
+      "interval_seconds": 2.0074714579968713
+    },
+    {
+      "native_cpu_percent": 0.49784437542579,
+      "native_rss_kib": 107952,
+      "interval_seconds": 2.0086598329944536
+    },
+    {
+      "native_cpu_percent": 0.0,
+      "native_rss_kib": 102144,
+      "interval_seconds": 2.0074297079700045
+    },
+    {
+      "native_cpu_percent": 0.49770720797159523,
+      "native_rss_kib": 102032,
+      "interval_seconds": 2.009213417011779
+    },
+    {
+      "native_cpu_percent": 0.0,
+      "native_rss_kib": 102032,
+      "interval_seconds": 2.0090605830191635
+    }
+  ]
+}
