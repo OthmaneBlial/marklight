@@ -1,17 +1,26 @@
 #!/usr/bin/env python3
 """Measure installed native executables locally. No network or telemetry."""
-import argparse,json,os,platform,re,signal,statistics,subprocess,time
+import argparse,hashlib,json,os,platform,re,signal,statistics,subprocess,time
 from pathlib import Path
 parser=argparse.ArgumentParser()
 parser.add_argument('--desktop',type=Path)
 parser.add_argument('--cli',type=Path,default=Path('target/release/marklight'))
 parser.add_argument('--document',type=Path,default=Path('fixtures/markdown/gfm.md'))
 parser.add_argument('--large',action='store_true',help='Also load generated 10 KB–10 MB files in the native app')
+parser.add_argument('--repeat-large',type=int,default=1,help='Fresh native launches per generated size (default: 1)')
+parser.add_argument('--varied-guide',type=Path,help='Also open a real, varied Markdown guide in a fresh native app')
+parser.add_argument('--output',type=Path,default=Path('artifacts/startup.json'),help='Write raw results to this JSON path')
 args=parser.parse_args()
+if args.repeat_large < 1:parser.error('--repeat-large must be at least 1')
 root=Path(__file__).resolve().parent.parent
 os.chdir(root)
 artifact=root/'artifacts';artifact.mkdir(exist_ok=True)
-report={'host':platform.platform(),'machine':platform.machine(),'cpu':subprocess.check_output(['sysctl','-n','machdep.cpu.brand_string'],text=True).strip() if platform.system()=='Darwin' else platform.processor()}
+report_path=args.output.resolve();report_path.parent.mkdir(parents=True,exist_ok=True)
+report={'host':platform.platform(),'machine':platform.machine(),'cpu':subprocess.check_output(['sysctl','-n','machdep.cpu.brand_string'],text=True).strip() if platform.system()=='Darwin' else platform.processor(),
+        'source_commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+        'source_tree_dirty':bool(subprocess.check_output(['git','status','--porcelain'],text=True).strip()),
+        'cli_sha256':hashlib.sha256(args.cli.read_bytes()).hexdigest()}
+if args.desktop:report['desktop_sha256']=hashlib.sha256(args.desktop.read_bytes()).hexdigest()
 for name,command in [('cli_help',[str(args.cli.resolve()),'--help']),('cli_read',[str(args.cli.resolve()),str(args.document.resolve()),'--plain','--no-pager'])]:
     samples=[]
     for _ in range(20):
@@ -25,9 +34,10 @@ def cpu_seconds(pid):
 if args.desktop:
     samples=[];idle=[]
     documents=[args.document]*3
-    if args.large:documents += [artifact/f'large-{size}.md' for size in [10000,100000,1000000,5000000,10000000]]
+    if args.varied_guide:documents.append(args.varied_guide)
+    if args.large:documents += [artifact/f'large-{size}.md' for size in [10000,100000,1000000,5000000,10000000] for _ in range(args.repeat_large)]
     for i,document in enumerate(documents):
-        output=artifact/f'native-ready-{i}.json';output.unlink(missing_ok=True)
+        output=report_path.with_name(f'{report_path.stem}-ready-{i}.json');output.unlink(missing_ok=True)
         env=os.environ.copy();env['MARKLIGHT_BENCH_OUTPUT']=str(output)
         start=time.perf_counter()
         executable=args.desktop.resolve()
@@ -53,7 +63,7 @@ if args.desktop:
             native=json.loads(output.read_text())
             if native.get('frontend') is None:
                 raise RuntimeError(f'native ready signal arrived before {document.name} finished rendering')
-            native_pid=native['pid'];native['observed_wall_ms']=(time.perf_counter()-start)*1000;native['document_bytes']=document.stat().st_size;samples.append(native)
+            native_pid=native['pid'];native['observed_wall_ms']=(time.perf_counter()-start)*1000;native['document_bytes']=document.stat().st_size;native['document_name']=document.name;samples.append(native)
             print(json.dumps(native),flush=True)
             if i==2:
                 time.sleep(3)
@@ -72,5 +82,5 @@ if args.desktop:
             except subprocess.TimeoutExpired:process.kill();process.wait()
             time.sleep(.2)
     report['desktop_ready']=samples;report['desktop_idle_native_only']=idle
-(artifact/'startup.json').write_text(json.dumps(report,indent=2)+'\n')
+report_path.write_text(json.dumps(report,indent=2)+'\n')
 print(json.dumps(report,indent=2))
