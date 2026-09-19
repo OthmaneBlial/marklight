@@ -464,8 +464,15 @@ function moveMatch(direction: number, scroll = true) {
   if (scroll) matches[matchIndex][0]?.scrollIntoView({ block: 'center' });
 }
 function toggleToc() {
-  if (mobile.matches) { document.body.classList.toggle('mobile-outline'); config.toc = true; } else config.toc = !config.toc;
-  savePreferences();
+  if (mobile.matches) {
+    const keyboard = document.activeElement === $('toggle-toc');
+    const opened = document.body.classList.toggle('mobile-outline');
+    config.toc = true; savePreferences();
+    if (keyboard) {
+      if (opened) ($('outline').querySelector('a') ?? $('recent').querySelector('button'))?.focus();
+      else $('toggle-toc').focus();
+    }
+  } else { config.toc = !config.toc; savePreferences(); }
 }
 function toggleZen() {
   const focused = document.activeElement;
@@ -525,7 +532,11 @@ document.addEventListener('keydown', event => {
   else if (mod && event.shiftKey && event.key.toLowerCase() === 't') { event.preventDefault(); toggleToc(); }
   else if (mod && event.shiftKey && event.key.toLowerCase() === 'z') { event.preventDefault(); toggleZen(); }
   else if (mod && ['+', '=', '-', '0'].includes(event.key)) { event.preventDefault(); font(event.key === '0' ? 0 : event.key === '-' ? -1 : 1); }
-  else if (event.key === 'Escape') { if (!$('search-bar').hidden) closeSearch(); else if (config.zen_mode) toggleZen(); else document.body.classList.remove('mobile-outline'); }
+  else if (event.key === 'Escape') {
+    if (!$('search-bar').hidden) closeSearch();
+    else if (config.zen_mode) toggleZen();
+    else if (document.body.classList.contains('mobile-outline')) { document.body.classList.remove('mobile-outline'); $('toggle-toc').focus(); }
+  }
   else if (event.key === 'Enter' && event.target === $('search-input')) { event.preventDefault(); moveMatch(event.shiftKey ? -1 : 1); }
 });
 async function startup() {

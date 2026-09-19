@@ -117,6 +117,19 @@ test('opening and zen mode keep keyboard focus in a visible reading control', as
   await expect(zen).toBeFocused();
 });
 
+test('the narrow outline moves focus to a heading and returns it on Escape', async ({ page }) => {
+  await reader(page, 'sample');
+  await page.setViewportSize({ width: 400, height: 800 });
+  const toggle = page.getByRole('button', { name: 'Toggle outline' });
+  await toggle.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#sidebar')).toBeVisible();
+  await expect(page.locator('#outline a').first()).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#sidebar')).toBeHidden();
+  await expect(toggle).toBeFocused();
+});
+
 test('recent files open chunked documents and a newer click wins during loading', async ({ page }) => {
   await reader(page, 'gfm', ['huge', 'basic']);
   await page.locator('#recent button').filter({ hasText: 'huge.md' }).click();
