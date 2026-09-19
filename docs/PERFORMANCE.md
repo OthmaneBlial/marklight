@@ -82,6 +82,39 @@ DOM/layout readiness, **not first visible paint**, interaction latency, smooth
 scrolling or total app-plus-WebKit memory. The idle RSS sample covers only the
 native process. Those missing measurements remain release gates for phase 1.1.
 
+## Deferred initial layout profile on 2026-09-19
+
+Commit `5e646fa` defers the initial reader focus and progress calculation until
+after the first interactive render. This removes the forced layout from the
+startup gate while keeping the viewport focused and the progress indicator
+updated on the next task. A release-mode macOS arm64 app with executable SHA-256
+`35ad8076da411bc1c3be336f17dbb9c92bdf6599f8d04aa1ce2a7ac915aa332e` was
+benchmarked from a clean source tree. Raw samples are
+[1 MB](measurements-phase1-deferred-1m-clean.json),
+[5 MB](measurements-phase1-deferred-5m-clean.json) and
+[10 MB](measurements-phase1-deferred-clean.json).
+
+| Markdown bytes | Native entry → interactive ready, three fresh launches | Median | Provisional goal |
+|---:|---:|---:|---:|
+| 1,000,000 | 1,214 / 1,173 / 1,165 ms | 1,173 ms | ≤1,500 ms |
+| 5,000,000 | 3,926 / 3,957 / 3,935 ms | 3,935 ms | ≤5,000 ms |
+| 10,000,000 | 7,964 / 8,068 / 7,998 ms | 7,998 ms | ≤8,000 ms |
+
+The 10 MB median now meets the provisional warm interactive target by about
+2 ms, but the cold first launch in an earlier three-run sequence took 70,313 ms
+before the same frontend became ready. The cold-start target therefore remains
+unmet. The frontend timing for the warm 10 MB runs was about 1,678–1,696 ms;
+focus and progress were intentionally outside that gate and completed after the
+initial task. The native WebKit accessibility checks still showed a working
+search result (`0 matches`) and an outline window of `1–100 of 40,817`.
+
+The benchmark now records RSS for the native process tree as well as the native
+process. On the 1 MB clean run the values were 184,000–184,176 KiB and matched
+the native-only sample; WebKit helpers were not descendants of that PID on this
+host, so this is **not** a complete app-plus-WebKit memory measurement. First
+visible paint, controlled search/click/scroll latency, and cold-start mitigation
+remain release gates for phase 1.1.
+
 ## Phase 1 development profile on 2026-09-19
 
 The current development branch uses visible-chunk heading lookup and displays

@@ -60,6 +60,35 @@ a 90-second readiness timeout on a later native run. Both experiments were
 reverted. Interaction latency and full app-plus-WebKit memory are unmeasured;
 no release speed claim follows from these tests.
 
+## Deferred initial layout measurements on 2026-09-19
+
+The source change at clean commit `5e646fa` moves initial viewport focus and
+progress calculation to the next task after the first interactive render. The
+same release-mode macOS arm64 app was measured three times per generated size
+from a clean tree. Raw samples are [1 MB](measurements-phase1-deferred-1m-clean.json),
+[5 MB](measurements-phase1-deferred-5m-clean.json) and
+[10 MB](measurements-phase1-deferred-clean.json); the executable SHA-256 is
+`35ad8076da411bc1c3be336f17dbb9c92bdf6599f8d04aa1ce2a7ac915aa332e`.
+
+Native entry-to-interactive medians were 1,173 ms (1 MB), 3,935 ms (5 MB) and
+7,998 ms (10 MB). The three 10 MB samples were 7,964 / 8,068 / 7,998 ms and
+therefore meet the provisional **warm median** goal by about 2 ms. A prior cold
+first launch in the same development sequence took 70,313 ms; the cold-start
+goal remains unmet. This gate does not measure first visible paint or controlled
+search, click or scroll response.
+
+The benchmark now records the full descendant process tree as well as the
+native process. A clean 1 MB run recorded 184,000–184,176 KiB for both values;
+WebKit helper processes were not descendants of the app PID on this host, so
+the result is not a complete app-plus-WebKit memory measurement. The raw
+diagnostic run is [here](measurements-phase1-process-tree.json).
+
+The rebuilt native app was exercised through the macOS picker with the 10 MB
+corpus: absent search reported `0 matches` on the first accessibility capture,
+the outline reported `1–100 of 40,817`, and the app exited cleanly through its
+menu. Configuration was restored byte-for-byte. No public download or
+screen-reader speech output was tested.
+
 ## Manual gate and local package rehearsal on 2026-09-19
 
 The complete `./scripts/check.sh` gate was rerun on clean commit `5d363b4`
