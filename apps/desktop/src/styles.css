@@ -6,3 +6,4 @@
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 #outline{max-height:32vh;overflow-y:auto;flex-shrink:0;margin-left:-10px;padding-left:10px;margin-right:-10px;padding-right:10px}.recent-section{flex-shrink:0}
 .outline-tools{display:grid;gap:4px;margin-bottom:10px}.outline-tools input{width:100%;min-width:0;border:1px solid var(--line);background:var(--paper);color:var(--text);border-radius:4px;padding:7px 8px;font-size:11px}.outline-pages{display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:10px}.outline-pages button{padding:1px 7px;font-size:18px}
+@media(max-width:500px){.wordmark{font-size:0}.toolbar{gap:6px}.toolbar nav button:not(.primary){width:30px;font-size:19px}}

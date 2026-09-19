@@ -197,6 +197,29 @@ test('outline navigation and reload preserve the active heading context', async 
   expect(await page.locator('#viewport').evaluate(el => el.scrollTop)).toBeGreaterThan(500);
 });
 
+test('reading history restores a file, heading offset and forward visit', async ({ page }) => {
+  await reader(page, 'huge', ['basic']);
+  const back = page.getByRole('button', { name: 'Back in reading history' });
+  const forward = page.getByRole('button', { name: 'Forward in reading history' });
+  await expect(back).toBeDisabled();
+  await page.getByRole('searchbox', { name: 'Find a heading' }).fill('Section 400');
+  await page.locator('#outline a[data-heading="section-400"]').click();
+  const heading = page.locator('#document [data-heading-id="section-400"]');
+  const offset = await heading.evaluate(element => element.getBoundingClientRect().top - document.getElementById('viewport')!.getBoundingClientRect().top);
+  await page.locator('#recent button').filter({ hasText: 'basic.md' }).click();
+  await expect(page.locator('#file-name')).toHaveText('basic.md');
+  await back.click();
+  await expect(page.locator('#file-name')).toHaveText('huge.md');
+  const restored = await heading.evaluate(element => element.getBoundingClientRect().top - document.getElementById('viewport')!.getBoundingClientRect().top);
+  expect(Math.abs(restored - offset)).toBeLessThan(3);
+  await back.click();
+  await expect.poll(() => page.locator('#viewport').evaluate(element => element.scrollTop)).toBe(0);
+  await forward.click();
+  await expect.poll(() => page.locator('#viewport').evaluate(element => element.scrollTop)).toBeGreaterThan(500);
+  await page.keyboard.press('Alt+ArrowRight');
+  await expect(page.locator('#file-name')).toHaveText('basic.md');
+});
+
 test('scroll progress does not measure headings in offscreen chunks', async ({ page }) => {
   await reader(page, 'huge');
   await expect(page.locator('#outline a')).toHaveCount(100);

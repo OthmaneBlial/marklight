@@ -38,6 +38,11 @@ let outlineStart = 0;
 let outlineQuery = '';
 let activeHeadingId: string | undefined;
 const outlinePageSize = 100;
+type ReadingContext = { id: string | undefined; offset: number; scroll: number };
+type Visit = { path: string; reading: ReadingContext };
+type HistoryMode = 'push' | 'back' | 'forward';
+const historyBack: Visit[] = [];
+const historyForward: Visit[] = [];
 const systemDark = matchMedia('(prefers-color-scheme: dark)');
 const mobile = matchMedia('(max-width: 750px)');
 const dark = () => config.theme === 'dark' || (config.theme === 'system' && systemDark.matches);
@@ -86,6 +91,27 @@ function scrollToHeading(id: string) {
   if (heading) { heading.scrollIntoView({ block: 'start' }); heading.tabIndex = -1; heading.focus({ preventScroll: true }); }
   document.body.classList.remove('mobile-outline');
 }
+function remember(stack: Visit[], visit: Visit) {
+  stack.push(visit);
+  if (stack.length > 50) stack.shift();
+}
+function updateHistoryControls() {
+  $<HTMLButtonElement>('history-back').disabled = !historyBack.length;
+  $<HTMLButtonElement>('history-forward').disabled = !historyForward.length;
+}
+function restoreReading(reading: ReadingContext, update = true) {
+  const heading = reading.id && documentHeadings.get(reading.id);
+  viewport.scrollTop = heading
+    ? viewport.scrollTop + heading.getBoundingClientRect().top - viewport.getBoundingClientRect().top - reading.offset
+    : reading.scroll;
+  if (update) updateProgress();
+}
+function jumpToHeading(id: string) {
+  if (viewport.getAttribute('aria-busy') === 'true') return;
+  const previous = current && { path: current.path, reading: context() };
+  scrollToHeading(id);
+  if (previous) { remember(historyBack, previous); historyForward.length = 0; updateHistoryControls(); }
+}
 function paintOutline() {
   const outline = $('outline'); outline.replaceChildren(); outlineLinks.clear(); activeOutline = null;
   const large = outlineHeadings.length > 400;
@@ -98,7 +124,7 @@ function paintOutline() {
   for (const heading of page) {
     const link = document.createElement('a'); link.href = `#${heading.id}`; link.textContent = heading.text;
     link.dataset.heading = heading.id; link.style.paddingLeft = `${10 + (heading.level - 1) * 10}px`;
-    link.onclick = event => { event.preventDefault(); scrollToHeading(heading.id); };
+    link.onclick = event => { event.preventDefault(); jumpToHeading(heading.id); };
     if (heading.id === activeHeadingId) {
       link.classList.add('active'); link.setAttribute('aria-current', 'location'); activeOutline = link;
     }
@@ -185,9 +211,9 @@ function decorateCode(root: ParentNode, payload: Payload) {
     }
   });
 }
-async function render(payload: Payload, preserve = false, anchor?: string | null, request = openRequest) {
+async function render(payload: Payload, preserve = false, anchor?: string | null, request = openRequest, saved?: ReadingContext) {
   const started = performance.now();
-  const reading = preserve ? context() : null;
+  const reading = saved ?? (preserve ? context() : null);
   const resetScroll = !preserve && viewport.scrollTop > 0;
   const template = document.createElement('template');
   template.innerHTML = payload.html;
@@ -243,10 +269,8 @@ async function render(payload: Payload, preserve = false, anchor?: string | null
   const outlined = performance.now();
   recents(payload.recent);
   const recented = performance.now();
-  if (reading) {
-    const heading = reading.id && documentHeadings.get(reading.id);
-    viewport.scrollTop = heading ? viewport.scrollTop + heading.getBoundingClientRect().top - viewport.getBoundingClientRect().top - reading.offset : reading.scroll;
-  } else if (resetScroll) viewport.scrollTop = 0;
+  if (reading) restoreReading(reading, false);
+  else if (resetScroll) viewport.scrollTop = 0;
   const scrolled = performance.now();
   if (!$('search-bar').hidden) scheduleSearch($<HTMLInputElement>('search-input').value, false);
   if (anchor) scrollToHeading(anchor);
@@ -262,7 +286,7 @@ async function render(payload: Payload, preserve = false, anchor?: string | null
     progress_ms: progressed - scrolled, finish_ms: finished - outlined, total_ms: finished - started,
   } satisfies RenderTimings;
 }
-function open(path: string, anchor?: string | null) {
+function open(path: string, anchor?: string | null, mode: HistoryMode = 'push', target?: Visit) {
   const request = ++openRequest;
   $('status').textContent = `OPENING ${path.split(/[/\\]/).at(-1) ?? path}…`;
   viewport.setAttribute('aria-busy', 'true');
@@ -273,8 +297,15 @@ function open(path: string, anchor?: string | null) {
       const payload = await invoke<Payload>('open_document', { path, dark: dark() });
       const received = performance.now();
       if (request === openRequest) {
-        const timings = await render(payload, false, anchor, request);
-        if (timings && !startupTimings) startupTimings = { ...timings, ipc_ms: received - invoked };
+        const previous = current && { path: current.path, reading: context() };
+        const timings = await render(payload, false, anchor, request, target?.reading);
+        if (timings) {
+          if (!startupTimings) startupTimings = { ...timings, ipc_ms: received - invoked };
+          if (mode === 'back') { historyBack.pop(); if (previous) remember(historyForward, previous); }
+          else if (mode === 'forward') { historyForward.pop(); if (previous) remember(historyBack, previous); }
+          else if (previous) { remember(historyBack, previous); historyForward.length = 0; }
+          updateHistoryControls();
+        }
       }
     } finally {
       if (request === openRequest) {
@@ -285,6 +316,18 @@ function open(path: string, anchor?: string | null) {
       }
     }
   });
+}
+function navigateHistory(mode: 'back' | 'forward') {
+  if (viewport.getAttribute('aria-busy') === 'true') return;
+  const source = mode === 'back' ? historyBack : historyForward;
+  const destination = mode === 'back' ? historyForward : historyBack;
+  const target = source.at(-1);
+  if (!target) return;
+  if (current?.path === target.path) {
+    const previous = { path: current.path, reading: context() };
+    restoreReading(target.reading);
+    source.pop(); remember(destination, previous); updateHistoryControls();
+  } else open(target.path, null, mode, target);
 }
 async function chooseFile() {
   if (openingDialog) return;
@@ -380,6 +423,8 @@ function toggleToc() {
 function toggleZen() { config.zen_mode = !config.zen_mode; savePreferences(); }
 function font(delta: number) { config.font_size = delta === 0 ? 16 : Math.max(12, Math.min(28, config.font_size + delta)); savePreferences(); }
 $('open').onclick = chooseFile; $('welcome-open').onclick = chooseFile;
+$('history-back').onclick = () => navigateHistory('back');
+$('history-forward').onclick = () => navigateHistory('forward');
 $<HTMLInputElement>('outline-filter').oninput = event => {
   outlineQuery = (event.target as HTMLInputElement).value.trim().toLocaleLowerCase();
   const activeIndex = activeHeadingId ? outlineIndexes.get(activeHeadingId) : undefined;
@@ -403,14 +448,16 @@ article.onclick = event => {
   if (viewport.getAttribute('aria-busy') === 'true') return;
   enqueue(async () => {
     const navigation = await invoke<Navigation>('follow_link', { href });
-    if (navigation.kind === 'anchor') scrollToHeading(navigation.id);
+    if (navigation.kind === 'anchor') jumpToHeading(navigation.id);
     if (navigation.kind === 'markdown') open(navigation.path, navigation.anchor);
   });
 };
 document.querySelector('.wordmark')!.addEventListener('click', event => { event.preventDefault(); viewport.scrollTop = 0; });
 document.addEventListener('keydown', event => {
   const mod = event.metaKey || event.ctrlKey;
-  if (mod && event.key.toLowerCase() === 'o') { event.preventDefault(); void chooseFile(); }
+  if (event.altKey && !mod && event.key === 'ArrowLeft') { event.preventDefault(); navigateHistory('back'); }
+  else if (event.altKey && !mod && event.key === 'ArrowRight') { event.preventDefault(); navigateHistory('forward'); }
+  else if (mod && event.key.toLowerCase() === 'o') { event.preventDefault(); void chooseFile(); }
   else if (mod && event.key.toLowerCase() === 'f') { event.preventDefault(); openSearch(); }
   else if (mod && event.shiftKey && event.key.toLowerCase() === 't') { event.preventDefault(); toggleToc(); }
   else if (mod && event.shiftKey && event.key.toLowerCase() === 'z') { event.preventDefault(); toggleZen(); }
