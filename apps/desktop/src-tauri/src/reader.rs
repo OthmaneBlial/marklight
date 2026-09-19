@@ -1,3 +1,4 @@
+use cap_std::{ambient_authority, fs::Dir};
 use marklight_core::{
     CodeBlock, Config, ConfigStore, Document, DocumentWatcher, Error, Heading, LinkTarget,
     Metadata, Result, classify_link, load_file, resolve_image,
@@ -40,6 +41,7 @@ pub struct Reader {
     store: ConfigStore,
     document: Option<(PathBuf, Document)>,
     watcher: Option<DocumentWatcher>,
+    image_root: Option<Dir>,
     images: HashMap<String, PathBuf>,
     generation: u64,
     config_warning: Option<String>,
@@ -55,6 +57,7 @@ impl Reader {
             store,
             document: None,
             watcher: None,
+            image_root: None,
             images: HashMap::new(),
             generation: 0,
             config_warning,
@@ -67,6 +70,7 @@ impl Reader {
         changed: impl Fn() + Send + 'static,
     ) -> Result<Payload> {
         let (path, document) = load_file(path)?;
+        let image_root = open_image_root(&path)?;
         self.watcher = None;
         let watch_warning = match DocumentWatcher::new(&path, changed) {
             Ok(w) => {
@@ -78,6 +82,7 @@ impl Reader {
         self.config.remember(&path);
         let config_warning = self.store.save(&self.config).err().map(|e| e.to_string());
         self.document = Some((path, document));
+        self.image_root = Some(image_root);
         Ok(self.payload(dark, watch_warning.or(config_warning)))
     }
     pub fn reload(&mut self, dark: bool) -> Result<Payload> {
@@ -87,7 +92,10 @@ impl Reader {
             .ok_or_else(|| Error::Config("no document is open".into()))?
             .0
             .clone();
-        self.document = Some(load_file(&path)?);
+        let (path, document) = load_file(&path)?;
+        let image_root = open_image_root(&path)?;
+        self.document = Some((path, document));
+        self.image_root = Some(image_root);
         Ok(self.payload(dark, None))
     }
     fn payload(&mut self, dark: bool, warning: Option<String>) -> Payload {
@@ -162,9 +170,27 @@ impl Reader {
         let relative = path
             .strip_prefix(document.parent().unwrap())
             .map_err(|_| Error::UnsafeLink("image is outside document directory".into()))?;
-        // Re-check containment after symlink changes, too.
-        let checked = resolve_image(document, &relative.to_string_lossy())?;
-        let ext = checked
+        // Open beneath the directory handle captured with the document. A path
+        // can be replaced after render, so a second canonicalize + File::open
+        // would still permit a symlink swap between authorization and read.
+        let root = self.image_root.as_ref().ok_or_else(|| {
+            Error::UnsafeLink("image is outside the current document scope".into())
+        })?;
+        let mut file = root.open(relative).map_err(|source| Error::Io {
+            path: path.clone(),
+            source,
+        })?;
+        if !file
+            .metadata()
+            .map_err(|source| Error::Io {
+                path: path.clone(),
+                source,
+            })?
+            .is_file()
+        {
+            return Err(Error::UnsafeLink("image is not a regular file".into()));
+        }
+        let ext = path
             .extension()
             .and_then(|e| e.to_str())
             .unwrap_or("")
@@ -177,16 +203,13 @@ impl Reader {
             "bmp" => "image/bmp",
             _ => "image/png",
         };
-        let file = std::fs::File::open(&checked).map_err(|source| Error::Io {
-            path: checked.clone(),
-            source,
-        })?;
         use std::io::Read;
         let mut bytes = Vec::new();
-        file.take(16 * 1024 * 1024 + 1)
+        file.by_ref()
+            .take(16 * 1024 * 1024 + 1)
             .read_to_end(&mut bytes)
             .map_err(|source| Error::Io {
-                path: checked,
+                path: path.clone(),
                 source,
             })?;
         if bytes.len() > 16 * 1024 * 1024 {
@@ -194,6 +217,14 @@ impl Reader {
         }
         Ok((bytes, mime))
     }
+}
+
+fn open_image_root(document: &Path) -> Result<Dir> {
+    let parent = document.parent().unwrap_or_else(|| Path::new("."));
+    Dir::open_ambient_dir(parent, ambient_authority()).map_err(|source| Error::Io {
+        path: parent.to_owned(),
+        source,
+    })
 }
 #[cfg(test)]
 mod tests {
@@ -236,5 +267,42 @@ mod tests {
         assert!(reader.image("../../etc/passwd").is_err());
         reader.reload(false).unwrap();
         assert!(reader.image("1-0").is_err());
+        std::fs::write(tmp.path().join("a.png"), vec![0; 16 * 1024 * 1024 + 1]).unwrap();
+        assert!(matches!(reader.image("2-0"), Err(Error::TooLarge)));
+    }
+    #[cfg(unix)]
+    #[test]
+    fn image_requests_reject_leaf_and_parent_symlink_swaps() {
+        use std::os::unix::fs::symlink;
+
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path().join("docs");
+        let outside = tmp.path().join("private");
+        std::fs::create_dir_all(root.join("images")).unwrap();
+        std::fs::create_dir(&outside).unwrap();
+        std::fs::write(root.join("README.md"), "![image](images/a.png)").unwrap();
+        std::fs::write(root.join("images/a.png"), b"public").unwrap();
+        std::fs::write(outside.join("a.png"), b"private").unwrap();
+        let mut reader = Reader::new(ConfigStore::at(tmp.path().join("config.toml")));
+        reader.open(&root.join("README.md"), false, || {}).unwrap();
+        assert_eq!(reader.image("1-0").unwrap().0, b"public");
+
+        std::fs::rename(root.join("images/a.png"), root.join("images/safe.png")).unwrap();
+        symlink(outside.join("a.png"), root.join("images/a.png")).unwrap();
+        assert!(reader.image("1-0").is_err());
+        std::fs::remove_file(root.join("images/a.png")).unwrap();
+        std::fs::rename(root.join("images/safe.png"), root.join("images/a.png")).unwrap();
+
+        std::fs::rename(root.join("images"), root.join("old-images")).unwrap();
+        symlink(&outside, root.join("images")).unwrap();
+        assert!(reader.image("1-0").is_err());
+        std::fs::remove_file(root.join("images")).unwrap();
+        std::fs::rename(root.join("old-images"), root.join("images")).unwrap();
+        assert_eq!(reader.image("1-0").unwrap().0, b"public");
+
+        let moved_root = tmp.path().join("moved-docs");
+        std::fs::rename(&root, &moved_root).unwrap();
+        symlink(&outside, &root).unwrap();
+        assert_eq!(reader.image("1-0").unwrap().0, b"public");
     }
 }
