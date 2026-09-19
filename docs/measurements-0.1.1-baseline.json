@@ -1,0 +1,183 @@
+{
+  "date": "2026-09-19",
+  "source_tag": "v0.1.1",
+  "source_commit": "763e28b",
+  "measurement_head": "4e4fd53",
+  "host": "macOS-26.6-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "cpu": "Apple M2",
+  "rust": "1.95.0",
+  "node": "25.9.0",
+  "binary_sha256": {
+    "cli": "b3310158ce56a989f4434cf4435f150758376d2c263ebb46dafef989057978c3",
+    "desktop": "c6d6cb1af1ab8198a1a2245017cb3b98dd56cc9d2a445ad46a7d445c28c4c257"
+  },
+  "method": {
+    "kernels": "one release-mode sample per size after syntax prewarm; synthetic repeated GFM; excludes filesystem, IPC and DOM",
+    "desktop": "LaunchServices fresh app instance; native entry to DOM/layout ready, not first paint; one sample per size after three 357-byte launches",
+    "idle": "five approximately two-second native-process samples; WebKit helper processes excluded"
+  },
+  "kernels": [
+    {
+      "bytes": 10000,
+      "parse_ms": 0.23,
+      "terminal_ms": 1.0,
+      "html_ms": 2.35
+    },
+    {
+      "bytes": 100000,
+      "parse_ms": 2.05,
+      "terminal_ms": 8.59,
+      "html_ms": 20.17
+    },
+    {
+      "bytes": 1000000,
+      "parse_ms": 18.26,
+      "terminal_ms": 84.27,
+      "html_ms": 202.77
+    },
+    {
+      "bytes": 5000000,
+      "parse_ms": 110.21,
+      "terminal_ms": 589.7,
+      "html_ms": 1429.68
+    },
+    {
+      "bytes": 10000000,
+      "parse_ms": 253.3,
+      "terminal_ms": 821.94,
+      "html_ms": 1724.57
+    }
+  ],
+  "cli_help": {
+    "first_ms": 40.19295901525766,
+    "median_ms": 6.330728996545076,
+    "max_ms": 40.19295901525766,
+    "samples_ms": [
+      40.19295901525766,
+      8.65929201245308,
+      6.50033401325345,
+      6.32404099451378,
+      6.337416998576373,
+      7.341041986364871,
+      6.366708024870604,
+      6.410416041035205,
+      6.50087499525398,
+      7.962959003634751,
+      6.758541974704713,
+      6.119999976363033,
+      6.212041014805436,
+      6.163083016872406,
+      6.0627920320257545,
+      6.036249978933483,
+      5.900166986975819,
+      5.974791012704372,
+      6.177374976687133,
+      6.120749982073903
+    ]
+  },
+  "cli_read": {
+    "first_ms": 6.933042022865266,
+    "median_ms": 6.0560834826901555,
+    "max_ms": 9.326957981102169,
+    "samples_ms": [
+      6.933042022865266,
+      5.928915983531624,
+      5.8789580361917615,
+      5.876665993127972,
+      5.946916993707418,
+      6.1847089673392475,
+      6.27733301371336,
+      6.004625000059605,
+      5.964541982393712,
+      6.261292030103505,
+      5.926584010012448,
+      6.14087498979643,
+      6.211832980625331,
+      6.044332985766232,
+      5.904874997213483,
+      6.044708949048072,
+      6.0895829810760915,
+      6.067458016332239,
+      6.6593749797903,
+      9.326957981102169
+    ]
+  },
+  "desktop_ready": [
+    {
+      "pid": 25681,
+      "ready_ms": 1009.9224170000001,
+      "observed_wall_ms": 1236.2153329886496,
+      "document_bytes": 357
+    },
+    {
+      "pid": 25689,
+      "ready_ms": 555.814709,
+      "observed_wall_ms": 657.5837089912966,
+      "document_bytes": 357
+    },
+    {
+      "pid": 25698,
+      "ready_ms": 558.831542,
+      "observed_wall_ms": 670.9534589899704,
+      "document_bytes": 357
+    },
+    {
+      "pid": 25761,
+      "ready_ms": 565.480208,
+      "observed_wall_ms": 650.4168339888565,
+      "document_bytes": 10000
+    },
+    {
+      "pid": 25771,
+      "ready_ms": 622.909625,
+      "observed_wall_ms": 712.5074579962529,
+      "document_bytes": 100000
+    },
+    {
+      "pid": 25782,
+      "ready_ms": 1203.6405000000002,
+      "observed_wall_ms": 1290.5924170045182,
+      "document_bytes": 1000000
+    },
+    {
+      "pid": 25804,
+      "ready_ms": 10366.69475,
+      "observed_wall_ms": 10454.15587502066,
+      "document_bytes": 5000000
+    },
+    {
+      "pid": 25950,
+      "ready_ms": 9718.991624999999,
+      "observed_wall_ms": 9797.37883398775,
+      "document_bytes": 10000000
+    }
+  ],
+  "desktop_idle_native_only": [
+    {
+      "native_cpu_percent": 0.0,
+      "native_rss_kib": 113184,
+      "interval_seconds": 2.0104657080373727
+    },
+    {
+      "native_cpu_percent": 0.0,
+      "native_rss_kib": 113184,
+      "interval_seconds": 2.012174082978163
+    },
+    {
+      "native_cpu_percent": 0.4977467626329551,
+      "native_rss_kib": 113136,
+      "interval_seconds": 2.009053749963641
+    },
+    {
+      "native_cpu_percent": 0.0,
+      "native_rss_kib": 112944,
+      "interval_seconds": 2.010390124982223
+    },
+    {
+      "native_cpu_percent": 0.0,
+      "native_rss_kib": 112944,
+      "interval_seconds": 2.0110919579747133
+    }
+  ]
+}

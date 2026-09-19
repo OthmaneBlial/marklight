@@ -1,5 +1,42 @@
 # Performance — measured, not inferred
 
+## Recheck of 0.1.1 on 2026-09-19
+
+The source changes since tag `v0.1.1` were documentation only when this
+baseline was captured. The tested CLI and desktop binaries report 0.1.1;
+their SHA-256 hashes and the raw samples are in
+[measurements-0.1.1-baseline.json](measurements-0.1.1-baseline.json). The
+release-mode kernel example was rerun from the checkout. The desktop executable
+was the existing local 0.1.1 bundle, **not** a newly downloaded public asset.
+The full local `scripts/check.sh` gate, pager smoke, npm tarball smoke and site
+check passed. This does not establish performance or installation on another OS.
+
+| Document | Parse | Terminal render | HTML render | Native entry → DOM/layout ready |
+|---:|---:|---:|---:|---:|
+| 10 KB | 0.23 ms | 1.00 ms | 2.35 ms | 565 ms |
+| 100 KB | 2.05 ms | 8.59 ms | 20.17 ms | 623 ms |
+| 1 MB | 18.26 ms | 84.27 ms | 202.77 ms | 1,204 ms |
+| 5 MB | 110.21 ms | 589.70 ms | 1,429.68 ms | 10,367 ms |
+| 10 MB | 253.30 ms | 821.94 ms | 1,724.57 ms | 9,719 ms |
+
+The kernel figures are **one sample per size** from the repeated GFM corpus;
+they exclude I/O, IPC and WebView layout. The native figures are also one
+fresh launch per size. The 5 MB value exceeding 10 MB illustrates run-to-run
+noise and is not a scaling law. Three additional 357-byte launches measured
+1,010, 556 and 559 ms from native entry to DOM/layout ready; the first run
+was colder. This still is not first visible paint. Twenty CLI `--help` runs
+had a 6.33 ms median; twenty small-file reads had a 6.06 ms median. Five idle
+native-process RSS samples were 110–111 MiB; WebKit helpers were excluded.
+The published 0.1.0 observations below remain a separate historical baseline.
+
+The next release has **provisional M2/macOS arm64 goals**, to be checked on
+three fresh runs per workload and at least one varied real guide: 1 MB ready
+within 1.5 s, 5 MB within 5 s, 10 MB within 8 s, warm small-document ready
+within 500 ms, and visible response to search/outline input within 200 ms on
+1 MB and 500 ms on 10 MB. These are user-experience targets, not achieved
+results or guarantees on other hardware. Interaction and complete process-tree
+memory baselines still need instrumentation before those goals can be judged.
+
 Measured 2026-09-16 on Apple M2 / arm64, macOS 26.6, Rust stable 1.95, release
 build with thin LTO. Raw samples and host metadata are in
 [measurements.json](measurements.json). These are development-host measurements,

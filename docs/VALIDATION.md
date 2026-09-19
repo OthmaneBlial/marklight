@@ -1,5 +1,23 @@
 # Validation — v0.1.1
 
+## Recheck on 2026-09-19 for roadmap baseline
+
+At local HEAD `4e4fd53` (only `ROADMAP.md` after the 0.1.1 code tag),
+`./scripts/check.sh` passed: npm clean install, TypeScript/Vite build,
+`cargo fmt --check`, strict workspace Clippy, 21 Rust tests, Rust-generated
+frontend fixtures and nine Playwright tests. Strict Clippy with all features,
+`python3 scripts/pager-smoke.py`, `python3 scripts/check-npm.py` on the local
+0.1.1 tarball, and `node scripts/check-site.mjs` also passed separately.
+See [the 0.1.1 performance recheck](PERFORMANCE.md#recheck-of-011-on-2026-09-19)
+and its [raw measurements](measurements-0.1.1-baseline.json).
+
+Read-only GitHub and npm metadata checks on that date showed a public GitHub
+release tagged `v0.1.1` with a macOS arm64 app ZIP, DMG, CLI archive and
+`SHA256SUMS`, and an npm package `marklight@0.1.1` restricted to macOS arm64.
+This recheck did **not** download those public assets into a clean environment,
+exercise Gatekeeper or revalidate the site URL. The native interaction table
+below remains the evidence from 2026-09-16, not a new native UI pass.
+
 Validated locally on 2026-09-16: macOS 26.6, Apple M2, arm64, Rust stable 1.95,
 Node 25.9. The project is pre-1.0. All development tests run locally; the source
 repository contains **zero GitHub Actions workflows** and GitHub Actions are
