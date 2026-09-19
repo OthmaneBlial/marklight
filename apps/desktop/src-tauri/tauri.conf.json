@@ -16,6 +16,10 @@
     }
   },
   "bundle": {
+    "resources": {
+      "../../../fixtures/markdown/sample.md": "sample/sample.md",
+      "../../../fixtures/markdown/sample-guide.md": "sample/sample-guide.md"
+    },
     "icon": ["icons/32x32.png", "icons/128x128.png", "icons/256x256.png", "icons/icon.icns", "icons/icon.ico"],
     "active": true,
     "targets": "all",

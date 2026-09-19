@@ -2,6 +2,7 @@ import './styles.css';
 import { convertFileSrc, invoke, isTauri } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
+import { resolveResource } from '@tauri-apps/api/path';
 import { clearHighlights, highlight } from './search';
 import type { Config, Heading, Navigation, Payload, Theme } from './types';
 
@@ -91,6 +92,7 @@ function savePreferences() {
 }
 function recents(paths: string[]) {
   config.recent = paths; $('recent').replaceChildren();
+  document.querySelector<HTMLElement>('.recent-section')!.hidden = paths.length === 0;
   for (const path of paths) {
     const li = document.createElement('li'); const button = document.createElement('button');
     button.textContent = path.split(/[/\\]/).at(-1) ?? path; button.title = path;
@@ -355,6 +357,18 @@ async function chooseFile() {
   catch (error) { showReaderError(`Could not choose a file. ${String(error)}`, () => { void chooseFile(); }); }
   finally { openingDialog = false; }
 }
+async function openSample() {
+  if (!native) { notify('Run the Tauri desktop app to read the included example.'); return; }
+  const request = openRequest;
+  const button = $<HTMLButtonElement>('welcome-sample');
+  button.disabled = true;
+  try {
+    const path = await resolveResource('sample/sample.md');
+    if (request === openRequest) open(path);
+  } catch (error) {
+    showReaderError(`Could not open the included example. ${String(error)}`, () => { void openSample(); });
+  } finally { button.disabled = false; }
+}
 function reload() {
   if (!current || !native) return;
   clearTimeout(reloadTimer);
@@ -461,6 +475,7 @@ function toggleZen() {
 }
 function font(delta: number) { config.font_size = delta === 0 ? 16 : Math.max(12, Math.min(28, config.font_size + delta)); savePreferences(); }
 $('open').onclick = chooseFile; $('welcome-open').onclick = chooseFile;
+$('welcome-sample').onclick = () => { void openSample(); };
 $('reader-retry').onclick = () => errorRetry?.();
 $('reader-error-close').onclick = clearReaderError;
 $('history-back').onclick = () => navigateHistory('back');

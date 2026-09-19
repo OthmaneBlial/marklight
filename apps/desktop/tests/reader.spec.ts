@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { readFileSync, mkdirSync } from 'node:fs';
-const fixtures = Object.fromEntries(['gfm','basic','links','broken-link','alerts','huge','malicious-html','unicode','tables','code','ui-collisions'].map(name => [name, JSON.parse(readFileSync(new URL(`../../../artifacts/frontend-fixtures/${name}.json`, import.meta.url), 'utf8'))]));
+const fixtures = Object.fromEntries(['gfm','basic','links','broken-link','alerts','sample','sample-guide','huge','malicious-html','unicode','tables','code','ui-collisions'].map(name => [name, JSON.parse(readFileSync(new URL(`../../../artifacts/frontend-fixtures/${name}.json`, import.meta.url), 'utf8'))]));
 async function reader(page: Page, initial = 'gfm', recentNames: string[] = []) {
   await page.addInitScript(({ fixtures, initial, recentNames }) => {
     const w = window as any;
@@ -9,7 +9,7 @@ async function reader(page: Page, initial = 'gfm', recentNames: string[] = []) {
     const callbacks = new Map<number, Function>();
     const events = new Map<string, number[]>();
     let active = initial;
-    let pending: string | null = fixtures[initial].path;
+    let pending: string | null = initial ? fixtures[initial].path : null;
     const config = { theme: 'system', font_size: 16, toc: true, zen_mode: false, recent: recentNames.map(name => fixtures[name].path) as string[] };
     w.testCommands = [];
     w.testFailOpenPath = null;
@@ -28,6 +28,7 @@ async function reader(page: Page, initial = 'gfm', recentNames: string[] = []) {
         if (command === 'copy_text') return navigator.clipboard.writeText(args.text);
         if (command === 'plugin:event|listen') { const list = events.get(args.event) ?? []; list.push(args.handler); events.set(args.event, list); return args.handler; }
         if (command === 'get_config') return config;
+        if (command === 'plugin:path|resolve_directory') return fixtures.sample.path;
         if (command === 'take_pending') { const result = pending; pending = null; return result; }
         if (command === 'save_preferences') { Object.assign(config, { theme: args.theme, font_size: args.fontSize, toc: args.toc, zen_mode: args.zenMode }); return; }
         if (command === 'clear_recent') { config.recent = []; return; }
@@ -48,6 +49,8 @@ async function reader(page: Page, initial = 'gfm', recentNames: string[] = []) {
         if (command === 'follow_link') {
           if (args.href.startsWith('#')) return { kind: 'anchor', id: args.href.slice(1) };
           if (args.href === 'basic.md') return { kind: 'markdown', path: fixtures.basic.path, anchor: null };
+          if (args.href === 'sample-guide.md') return { kind: 'markdown', path: fixtures['sample-guide'].path, anchor: null };
+          if (args.href === 'sample.md') return { kind: 'markdown', path: fixtures.sample.path, anchor: null };
           if (args.href === 'not-here.md') {
             if (w.testMissingLink) throw new Error('No such file');
             return { kind: 'markdown', path: fixtures.basic.path, anchor: null };
@@ -60,8 +63,25 @@ async function reader(page: Page, initial = 'gfm', recentNames: string[] = []) {
     w.__TAURI_EVENT_PLUGIN_INTERNALS__ = { unregisterListener: () => {} };
   }, { fixtures, initial, recentNames });
   await page.goto('/');
-  await expect(page.locator('article#document')).toBeVisible();
+  if (initial) await expect(page.locator('article#document')).toBeVisible();
+  else await expect(page.locator('#welcome')).toBeVisible();
 }
+
+test('first launch opens the bundled Markdown example and follows its local page', async ({ page }) => {
+  await reader(page, '');
+  await expect(page.locator('.recent-section')).toBeHidden();
+  await page.setViewportSize({ width: 400, height: 800 });
+  await expect(page.getByRole('button', { name: 'Read the included example' })).toBeInViewport();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(400);
+  await page.getByRole('button', { name: 'Read the included example' }).click();
+  await expect(page.locator('#document h1')).toHaveText('Read without leaving your work');
+  await expect(page.locator('#viewport')).toBeFocused();
+  await expect(page.locator('#outline')).toContainText('Copy the original code');
+  await page.getByRole('link', { name: 'Open the companion page' }).click();
+  await expect(page.locator('#document h1')).toHaveText('A second page, still local');
+  await page.getByRole('button', { name: 'Back in reading history' }).click();
+  await expect(page.locator('#document h1')).toHaveText('Read without leaving your work');
+});
 
 test('heading names cannot overwrite controls and anchors target the document', async ({ page }) => {
   await reader(page, 'ui-collisions');
