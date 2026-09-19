@@ -39,3 +39,11 @@ Submit a focused pull request describing the problem, user-visible behavior
 and local checks. Attach screenshots for UI changes. Do not include local paths,
 personal documents, credentials or generated build artifacts. Contributions
 are made under the project's MIT license.
+
+Use the [bug report](.github/ISSUE_TEMPLATE/bug_report.md) or
+[reading improvement](.github/ISSUE_TEMPLATE/feature_request.md) template for
+public issues. Reproduce a bug with a small non-private Markdown snippet or a
+checked-in fixture before sharing it. Security issues belong in the private
+reporting path described in [SECURITY.md](SECURITY.md). The
+[pull request template](.github/pull_request_template.md) asks for exact checks
+and the provenance of UI screenshots.
