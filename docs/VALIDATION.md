@@ -1,5 +1,38 @@
 # Validation — v0.1.1 baseline and current development
 
+## Manual gate and local package rehearsal on 2026-09-19
+
+The extended `./scripts/check.sh` passed on clean commit `2960518` on macOS
+26.6 / Apple M2 arm64 with Rust 1.95.0, Node 25.9.0, npm 11.12.1 and Python
+3.14.6. It completed npm clean install and frontend build, formatting, strict
+workspace Clippy both normally and with all features, 31 Rust tests, 20
+Playwright scenarios, Rust-generated frontend fixtures and the local site
+check (390/1280 px, 16 exact copies and 72 local references). An isolated,
+temporary Rust test deliberately failed; the same script exited 101 at that
+test. The probe was removed and `git status` returned clean. Local logs are in
+ignored `artifacts/phase4-clean-gate.log` and `phase4-negative-gate.log`.
+The policy remains **manual gates, no GitHub Actions**; this is not CI.
+
+The macOS arm64 release-mode CLI and app were then rebuilt from the current
+development code. `scripts/package.sh` sent ZIP, DMG, CLI archive and
+`SHA256SUMS` to ignored `artifacts/phase4-package/`, preserving the existing
+`artifacts/release/` files. `scripts/check-macos-package.py` verified the three
+recorded SHA-256 values, extracted ZIP app version/identifier, its local ad hoc
+seal and byte-identical bundled examples, a read-only mounted DMG with a
+matching executable and Applications symlink, and the extracted CLI's version
+and GFM golden output. `hdiutil verify` also passed during packaging. The
+isolated npm candidate under `artifacts/phase4-npm/` passed `check-npm.py`
+(version/help, fixture, stdin and a spaced path), and `pager-smoke.py` passed
+against the release CLI. The package checker was rerun after its script commit
+`b598ca8` and passed with a clean worktree.
+
+These are **local development packages bearing the unchanged 0.1.1 version**.
+They are not the public 0.1.1 assets or a new release. They have not been
+downloaded from GitHub, installed on a clean macOS profile, assessed by
+Gatekeeper, or checked on Intel Mac, Windows or Linux. No Developer ID signing
+or notarization was performed. The complete gate and package checks must run
+again on the final versioned release commit before a publication claim.
+
 ## Development progress after v0.1.1 on 2026-09-19
 
 At local source commit `91ff716`, `npm run build` and 12 Playwright scenarios

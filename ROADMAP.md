@@ -72,10 +72,15 @@ un fichier écrit. État au 19 septembre 2026 :
   installation propre du paquet distribué et retour novice encore absents.
 - [ ] **3.2** Accueil/exemple sombre à 400 px et alertes claires à 1120 px
   inspectés dans WebKit macOS ; autres états et captures finales à vérifier.
-- [ ] **4.1** Porte de qualité et décision CI.
+- [ ] **4.1** Porte manuelle étendue (versions, Clippy toutes features,
+  Playwright et site) passée sur `2960518` propre ; un test Rust cassé est
+  rejeté. Politique sans Actions conservée. Relancer sur le futur commit de
+  release et joindre son rapport avant de cocher.
 - [ ] **4.2** Plateformes installées et validées.
 - [ ] **4.3** Confiance macOS et registres.
-- [ ] **4.4** Artefacts traçables.
+- [ ] **4.4** ZIP/DMG/CLI/npm locaux construits en dossiers séparés et soumis
+  aux smokes de checksum, extraction, sceau, contenu et commande réelle sur
+  macOS arm64 ; version/tag de release et téléchargement final encore absents.
 - [ ] **5.1** README et captures natives.
 - [ ] **5.2** Site et documentation alignés.
 - [ ] **5.3** Adoption et contributions.

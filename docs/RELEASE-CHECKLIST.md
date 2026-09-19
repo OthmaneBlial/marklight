@@ -20,18 +20,32 @@ Do not generate a download labelled supported merely because it compiled.
 ## Quality gate
 
 - [ ] Record target commit, tag, source tree status, compiler/Node/Tauri versions and OS.
-- [ ] Run `./scripts/check.sh`, all-feature Clippy, pager smoke, npm package smoke,
-      site check, adversarial fixtures and the new navigation/performance tests.
+- [ ] Run `./scripts/check.sh` on the clean target commit. It includes strict
+      all-feature Clippy, Rust adversarial/navigation tests, Playwright and
+      the local site check; keep its full dated output.
+- [ ] On macOS arm64, build local candidates outside the existing release
+      directory and run the extracted-archive smoke tests:
+
+      ```sh
+      MARKLIGHT_PACKAGE_OUTPUT="$PWD/artifacts/release-candidate" ./scripts/package.sh
+      python3 scripts/check-macos-package.py --output-dir artifacts/release-candidate
+      MARKLIGHT_NPM_OUTPUT="$PWD/artifacts/npm-candidate" ./scripts/package-npm.sh
+      python3 scripts/check-npm.py "artifacts/npm-candidate/marklight-VERSION.tgz"
+      python3 scripts/pager-smoke.py
+      ```
+
+      Replace `VERSION` with the synchronized manifest version. These checks
+      inspect local packages; a downloaded asset needs its own install test.
 - [ ] Run the performance protocol in `docs/PERFORMANCE.md`, including at least
       three fresh native launches per size, one varied guide, interactive
       search/outline timing and complete process-tree memory scope.
 - [ ] On every announced OS, install **the actual packaged asset** in a clean
       environment and test launch, `.md` open, links, search, copy, reload,
       keyboard controls and exit. Label assistive-technology checks separately.
-- [ ] Decide with the maintainer whether GitHub Actions are allowed. Current
-      `scripts/check.sh`, `docs/PLAN.md` and `CONTRIBUTING.md` intentionally
-      prohibit workflows. If they remain disabled, attach dated manual gate
+- [ ] Follow the current maintainer policy: `scripts/check.sh`, `docs/PLAN.md`
+      and `CONTRIBUTING.md` prohibit GitHub Actions. Attach dated manual gate
       output for the release; never display a CI badge without a real run.
+      Any policy change requires a separate explicit decision and aligned docs.
 
 ## Packaging and trust gate
 
