@@ -81,7 +81,7 @@ un fichier écrit. État au 19 septembre 2026 :
 - [ ] **3.2** Accueil/exemple sombre à 400 px et alertes claires à 1120 px
   inspectés dans WebKit macOS ; autres états et captures finales à vérifier.
 - [ ] **4.1** Porte manuelle étendue (versions, Clippy toutes features,
-  Playwright et site) passée sur `2960518` propre ; un test Rust cassé est
+  Playwright et site) repassée sur `5d363b4` propre ; un test Rust cassé est
   rejeté. Les captures du test vont désormais dans `artifacts/` ignoré et ne
   modifient plus les PNG suivis par Git. Politique sans Actions conservée.
   Relancer sur le futur commit de release et joindre son rapport avant de cocher.

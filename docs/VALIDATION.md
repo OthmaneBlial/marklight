@@ -51,6 +51,15 @@ no release speed claim follows from these tests.
 
 ## Manual gate and local package rehearsal on 2026-09-19
 
+The complete `./scripts/check.sh` gate was rerun on clean commit `5d363b4`
+after the search change and screenshot-output correction. It passed formatting,
+strict workspace Clippy both normally and with all features, 31 Rust tests,
+20 Playwright scenarios, and the site check (390/1280 px, 16 exact copies,
+72 local references). The tracked worktree remained clean after the run.
+The local log is ignored `artifacts/phase4-head-gate.log`; generated Rust debug
+build files were cleaned afterward to restore disk space. This remains a local
+source gate, not the gate on a future versioned release commit.
+
 The extended `./scripts/check.sh` passed on clean commit `2960518` on macOS
 26.6 / Apple M2 arm64 with Rust 1.95.0, Node 25.9.0, npm 11.12.1 and Python
 3.14.6. It completed npm clean install and frontend build, formatting, strict
