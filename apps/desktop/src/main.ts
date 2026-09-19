@@ -234,6 +234,7 @@ function decorateCode(root: ParentNode, payload: Payload) {
 }
 async function render(payload: Payload, preserve = false, anchor?: string | null, request = openRequest, saved?: ReadingContext) {
   const started = performance.now();
+  const deferInitialLayout = !startupTimings && !preserve && !anchor && !saved;
   const reading = saved ?? (preserve ? context() : null);
   const resetScroll = !preserve && viewport.scrollTop > 0;
   const template = document.createElement('template');
@@ -286,7 +287,7 @@ async function render(payload: Payload, preserve = false, anchor?: string | null
   const headingIndexed = performance.now();
   article.hidden = false; $('welcome').hidden = true;
   const displayed = performance.now();
-  if (!preserve) viewport.focus({ preventScroll: true });
+  if (!deferInitialLayout && !preserve) viewport.focus({ preventScroll: true });
   const focused = performance.now();
   $('file-name').textContent = payload.name; $('file-name').title = payload.path;
   document.title = `${payload.name} — Marklight`;
@@ -305,7 +306,12 @@ async function render(payload: Payload, preserve = false, anchor?: string | null
   const scrolled = performance.now();
   if (!$('search-bar').hidden) scheduleSearch($<HTMLInputElement>('search-input').value, false);
   if (anchor) scrollToHeading(anchor);
-  updateProgress();
+  if (!deferInitialLayout) updateProgress();
+  else setTimeout(() => {
+    if (request !== openRequest || !current || current.path !== payload.path) return;
+    viewport.focus({ preventScroll: true });
+    updateProgress();
+  }, 0);
   const progressed = performance.now();
   if (payload.warning) notify(payload.warning, true);
   const finished = performance.now();
