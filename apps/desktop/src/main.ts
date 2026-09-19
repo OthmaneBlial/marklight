@@ -28,7 +28,7 @@ let searchTimer: ReturnType<typeof setTimeout>;
 let preferencesTimer: ReturnType<typeof setTimeout>;
 let openingDialog = false;
 let openRequest = 0;
-type RenderTimings = { ipc_ms: number; template_ms: number; decoration_ms: number; chunks_ms: number; attach_ms: number; outline_ms: number; recents_ms: number; scroll_ms: number; progress_ms: number; finish_ms: number; total_ms: number };
+type RenderTimings = { ipc_ms: number; template_ms: number; decoration_ms: number; chunks_ms: number; attach_ms: number; heading_index_ms: number; display_ms: number; focus_ms: number; outline_index_ms: number; outline_paint_ms: number; outline_ms: number; recents_ms: number; scroll_ms: number; progress_ms: number; finish_ms: number; total_ms: number };
 let startupTimings: RenderTimings | null = null;
 type ChunkHeadings = { headings: HTMLElement[]; previous: HTMLElement | undefined };
 let chunkHeadings = new WeakMap<HTMLElement, ChunkHeadings>();
@@ -277,8 +277,11 @@ async function render(payload: Payload, preserve = false, anchor?: string | null
   documentHeadings.clear();
   nextHeadings.forEach((heading, id) => documentHeadings.set(id, heading));
   headingElements = Array.from(documentHeadings.values());
+  const headingIndexed = performance.now();
   article.hidden = false; $('welcome').hidden = true;
+  const displayed = performance.now();
   if (!preserve) viewport.focus({ preventScroll: true });
+  const focused = performance.now();
   $('file-name').textContent = payload.name; $('file-name').title = payload.path;
   document.title = `${payload.name} — Marklight`;
   $('status').textContent = `${payload.metadata.words.toLocaleString()} WORDS · ${payload.metadata.reading_minutes} MIN READ · LIVE RELOAD`;
@@ -286,6 +289,7 @@ async function render(payload: Payload, preserve = false, anchor?: string | null
   outlineIndexes.clear(); payload.headings.forEach((heading, index) => outlineIndexes.set(heading.id, index));
   outlineQuery = ''; outlineStart = 0; activeHeadingId = undefined;
   $<HTMLInputElement>('outline-filter').value = '';
+  const outlineIndexed = performance.now();
   paintOutline();
   const outlined = performance.now();
   recents(payload.recent);
@@ -302,7 +306,10 @@ async function render(payload: Payload, preserve = false, anchor?: string | null
   return {
     ipc_ms: 0, template_ms: templated - started,
     decoration_ms: decorated - templated, chunks_ms: chunked - decorated,
-    attach_ms: attached - chunked, outline_ms: outlined - attached,
+    attach_ms: attached - chunked,
+    heading_index_ms: headingIndexed - attached, display_ms: displayed - headingIndexed,
+    focus_ms: focused - displayed, outline_index_ms: outlineIndexed - focused,
+    outline_paint_ms: outlined - outlineIndexed, outline_ms: outlined - attached,
     recents_ms: recented - outlined, scroll_ms: scrolled - recented,
     progress_ms: progressed - scrolled, finish_ms: finished - outlined, total_ms: finished - started,
   } satisfies RenderTimings;

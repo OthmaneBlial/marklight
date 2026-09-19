@@ -7,11 +7,13 @@ parser.add_argument('--desktop',type=Path)
 parser.add_argument('--cli',type=Path,default=Path('target/release/marklight'))
 parser.add_argument('--document',type=Path,default=Path('fixtures/markdown/gfm.md'))
 parser.add_argument('--large',action='store_true',help='Also load generated 10 KB–10 MB files in the native app')
+parser.add_argument('--startup-runs',type=int,default=3,help='Fresh launches of --document (default: 3)')
 parser.add_argument('--repeat-large',type=int,default=1,help='Fresh native launches per generated size (default: 1)')
 parser.add_argument('--varied-guide',type=Path,help='Also open a real, varied Markdown guide in a fresh native app')
 parser.add_argument('--output',type=Path,default=Path('artifacts/startup.json'),help='Write raw results to this JSON path')
 args=parser.parse_args()
 if args.repeat_large < 1:parser.error('--repeat-large must be at least 1')
+if args.startup_runs < 1:parser.error('--startup-runs must be at least 1')
 root=Path(__file__).resolve().parent.parent
 os.chdir(root)
 artifact=root/'artifacts';artifact.mkdir(exist_ok=True)
@@ -33,7 +35,7 @@ def cpu_seconds(pid):
     return result
 if args.desktop:
     samples=[];idle=[]
-    documents=[args.document]*3
+    documents=[args.document]*args.startup_runs
     if args.varied_guide:documents.append(args.varied_guide)
     if args.large:documents += [artifact/f'large-{size}.md' for size in [10000,100000,1000000,5000000,10000000] for _ in range(args.repeat_large)]
     for i,document in enumerate(documents):
