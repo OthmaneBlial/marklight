@@ -265,4 +265,33 @@ mod tests {
         assert!(!html.contains("id=\"unsafe\""));
         assert!(!html.contains("style="));
     }
+
+    #[test]
+    fn bounded_hostile_markup_mutations_do_not_gain_active_html() {
+        let payloads = [
+            "<script>alert(1)</script>",
+            "<img src=\"https://tracker.invalid/pixel\" onerror=\"alert(1)\">",
+            "<svg onload=\"alert(1)\"><script>alert(1)</script></svg>",
+            "[click](javascript:alert(1))",
+            "<pre data-code=\"0\"><code>forged</code></pre>",
+        ];
+        let wrappers = ["{payload}", "> {payload}", "- {payload}", "# {payload}"];
+        for payload in payloads {
+            for wrapper in wrappers {
+                let source = wrapper.replace("{payload}", payload);
+                let html = render_html(&Document::parse(&source), &HtmlOptions::default());
+                for forbidden in [
+                    "<script",
+                    "<svg",
+                    "onerror=",
+                    "onload=",
+                    "src=\"https://",
+                    "javascript:",
+                    "data-code=\"0\"",
+                ] {
+                    assert!(!html.contains(forbidden), "{source:?}: {html}");
+                }
+            }
+        }
+    }
 }

@@ -258,4 +258,27 @@ mod tests {
             assert!(resolve_image(&root.join("README.md"), "symlink.png").is_err());
         }
     }
+
+    #[test]
+    fn encoded_traversal_mutations_never_grant_an_outside_image() {
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path().join("docs");
+        std::fs::create_dir(&root).unwrap();
+        std::fs::write(tmp.path().join("private.png"), b"outside").unwrap();
+        let document = root.join("README.md");
+
+        // Exercise every raw/percent-encoded combination of the two dots and
+        // slash, plus case variants of the encoded bytes. All resolve to the
+        // same outside file and must be denied after decoding.
+        for mask in 0..8 {
+            for encoded_dot in ["%2e", "%2E"] {
+                for encoded_slash in ["%2f", "%2F"] {
+                    let dot = |bit| if mask & bit == 0 { "." } else { encoded_dot };
+                    let slash = if mask & 4 == 0 { "/" } else { encoded_slash };
+                    let href = format!("{}{}{slash}private.png", dot(1), dot(2));
+                    assert!(resolve_image(&document, &href).is_err(), "{href}");
+                }
+            }
+        }
+    }
 }
