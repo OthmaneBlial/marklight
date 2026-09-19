@@ -58,7 +58,10 @@ un fichier écrit. État au 19 septembre 2026 :
   laissées lisibles/inertes ; fixtures et contrôles Rust/Chromium passés. La
   reconstruction native macOS passe, mais son rendu n'a pas été inspecté dans
   cette vérification : voir [validation](docs/VALIDATION.md#development-progress-after-v011-on-2026-09-19).
-- [ ] **2.1** Frontière des documents non fiables.
+- [ ] **2.1** Frontière des documents non fiables : lecture d'image désormais
+  confinée par descripteur de dossier après substitution de symlink ; audit
+  RustSec/npm et politique de réexamen ajoutés. Restent l'essai du protocole
+  image natif sur le build courant et la revue adversariale complète.
 - [ ] **2.2** Gestes natifs et accessibilité.
 - [ ] **2.3** Architecture et régressions.
 - [ ] **3.1** Première utilisation.

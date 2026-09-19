@@ -48,6 +48,28 @@ not acquire its window (`cgWindowNotFound`), so this build does **not** add a
 native visual assertion for the callouts. Its process was closed and the
 pre-test TOML configuration was restored with a matching SHA-256.
 
+At `d3271ad`, the image protocol's Rust reader now opens references beneath a
+directory handle captured with the document. A deterministic macOS test passed
+after swapping the image file, its parent directory and the document directory
+for symlinks to a private location. It also verified that an existing token
+expires on reload and that a 16 MiB + 1 byte image is rejected. The full local
+gate passed (28 Rust tests, 17 Playwright scenarios) and all-feature strict
+Clippy passed. No native protocol request was exercised on this rebuilt source;
+the browser adapter does not prove the Tauri protocol handler.
+
+`scripts/audit-deps.sh` passed on 2026-09-19 after adding `cap-std 4.0.3`:
+RustSec's locally fetched database had 1,251 advisories (updated
+2026-09-19 10:42 +02:00) and reported **zero known vulnerabilities** across the
+lockfile; npm reported zero vulnerabilities. RustSec also reported eight
+*unmaintained* and one *unsound* informational warnings. `bincode` and
+`yaml-rust` are transitive through `syntect`; the `unic-*` warnings are
+transitive through Tauri's `urlpattern`; `proc-macro-error` is absent from the
+macOS arm64 dependency tree; the affected `glib 0.18.5` is in the Linux GTK
+tree, not the macOS arm64 tree. These are not treated as cleared for a future
+Linux package: revisit the upstream dependency path before Linux validation.
+The scanner's zero-vulnerability result is limited to known advisories at that
+database revision and does not replace the runtime security tests.
+
 ## Recheck on 2026-09-19 for roadmap baseline
 
 At local HEAD `4e4fd53` (only `ROADMAP.md` after the 0.1.1 code tag),
