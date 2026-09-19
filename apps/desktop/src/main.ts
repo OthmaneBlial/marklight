@@ -22,6 +22,10 @@ let searchTimer: ReturnType<typeof setTimeout>;
 let preferencesTimer: ReturnType<typeof setTimeout>;
 let openingDialog = false;
 let openRequest = 0;
+type RenderTimings = { ipc_ms: number; template_ms: number; decoration_ms: number; chunks_ms: number; attach_ms: number; outline_ms: number; finish_ms: number; total_ms: number };
+let startupTimings: RenderTimings | null = null;
+type ChunkHeadings = { headings: HTMLElement[]; previous: HTMLElement | undefined };
+let chunkHeadings = new WeakMap<HTMLElement, ChunkHeadings>();
 let activeOutline: HTMLAnchorElement | null = null;
 const outlineLinks = new Map<string, HTMLAnchorElement>();
 const systemDark = matchMedia('(prefers-color-scheme: dark)');
@@ -73,6 +77,27 @@ function scrollToHeading(id: string) {
   document.body.classList.remove('mobile-outline');
 }
 function headingAt(top: number) {
+  if (headingElements.length > 400) {
+    const rect = viewport.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    for (const offset of [0, 40, 100, 200]) {
+      const y = Math.min(rect.bottom - 1, top + offset);
+      if (y < rect.top || y >= rect.bottom) continue;
+      const chunk = document.elementFromPoint(x, y)?.closest<HTMLElement>('.document-chunk');
+      if (!chunk || !article.contains(chunk)) continue;
+      const data = chunkHeadings.get(chunk);
+      if (!data) continue;
+      let low = 0; let high = data.headings.length;
+      while (low < high) {
+        const mid = (low + high) >>> 1;
+        if (data.headings[mid].getBoundingClientRect().top <= top) low = mid + 1; else high = mid;
+      }
+      return data.headings[low - 1] ?? data.previous;
+    }
+    // A blank gap at the edge of the viewport has no document element.
+    // Keep the last active heading until a chunk becomes visible again.
+    return activeOutline?.dataset.heading ? documentHeadings.get(activeOutline.dataset.heading) : headingElements[0];
+  }
   let low = 0; let high = headingElements.length;
   while (low < high) {
     const mid = (low + high) >>> 1;
@@ -119,12 +144,15 @@ function decorateCode(root: ParentNode, payload: Payload) {
   });
 }
 async function render(payload: Payload, preserve = false, anchor?: string | null, request = openRequest) {
+  const started = performance.now();
   const reading = preserve ? context() : null;
   const template = document.createElement('template');
   template.innerHTML = payload.html;
   const content = template.content;
+  const templated = performance.now();
   decorateCode(content, payload);
-  if (request !== openRequest) return;
+  const decorated = performance.now();
+  if (request !== openRequest) return null;
   const nextHeadings = new Map<string, HTMLElement>();
   // Keep canonical Markdown anchors separate from the reader's DOM identifiers.
   for (const heading of content.querySelectorAll<HTMLElement>('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]')) {
@@ -134,17 +162,29 @@ async function render(payload: Payload, preserve = false, anchor?: string | null
     nextHeadings.set(id, heading);
   }
   let body = content;
+  const nextChunkHeadings = new WeakMap<HTMLElement, ChunkHeadings>();
   if (content.childElementCount > 400) {
     body = document.createDocumentFragment();
+    let previous: HTMLElement | undefined;
     while (content.firstChild) {
       const chunk = document.createElement('div'); chunk.className = 'document-chunk';
-      for (let count = 0; count < 200 && content.firstChild; count++) chunk.append(content.firstChild);
+      const headings: HTMLElement[] = [];
+      for (let count = 0; count < 200 && content.firstChild; count++) {
+        const node = content.firstChild;
+        chunk.append(node);
+        if (node instanceof HTMLElement && node.matches('h1,h2,h3,h4,h5,h6')) headings.push(node);
+      }
+      nextChunkHeadings.set(chunk, { headings, previous });
+      previous = headings.at(-1) ?? previous;
       body.append(chunk);
       await yieldToUi();
-      if (request !== openRequest) return;
+      if (request !== openRequest) return null;
     }
   }
+  const chunked = performance.now();
   current = payload; article.replaceChildren(body);
+  chunkHeadings = nextChunkHeadings;
+  const attached = performance.now();
   documentHeadings.clear();
   nextHeadings.forEach((heading, id) => documentHeadings.set(id, heading));
   headingElements = Array.from(documentHeadings.values());
@@ -162,6 +202,7 @@ async function render(payload: Payload, preserve = false, anchor?: string | null
     outlineLinks.set(heading.id, link);
   }
   outline.append(outlineContent);
+  const outlined = performance.now();
   if (!payload.headings.length) { const empty = document.createElement('p'); empty.className = 'muted'; empty.textContent = 'No headings in this document.'; outline.append(empty); }
   recents(payload.recent);
   if (reading) {
@@ -172,6 +213,13 @@ async function render(payload: Payload, preserve = false, anchor?: string | null
   if (anchor) scrollToHeading(anchor);
   updateProgress();
   if (payload.warning) notify(payload.warning, true);
+  const finished = performance.now();
+  return {
+    ipc_ms: 0, template_ms: templated - started,
+    decoration_ms: decorated - templated, chunks_ms: chunked - decorated,
+    attach_ms: attached - chunked, outline_ms: outlined - attached,
+    finish_ms: finished - outlined, total_ms: finished - started,
+  } satisfies RenderTimings;
 }
 function open(path: string, anchor?: string | null) {
   const request = ++openRequest;
@@ -180,8 +228,13 @@ function open(path: string, anchor?: string | null) {
   enqueue(async () => {
     if (request !== openRequest) return;
     try {
+      const invoked = performance.now();
       const payload = await invoke<Payload>('open_document', { path, dark: dark() });
-      if (request === openRequest) await render(payload, false, anchor, request);
+      const received = performance.now();
+      if (request === openRequest) {
+        const timings = await render(payload, false, anchor, request);
+        if (timings && !startupTimings) startupTimings = { ...timings, ipc_ms: received - invoked };
+      }
     } finally {
       if (request === openRequest) {
         viewport.removeAttribute('aria-busy');
@@ -289,6 +342,6 @@ async function startup() {
   await actions;
   // render/updateProgress already forces initial layout. Report DOM readiness;
   // background WebViews can suspend animation frames indefinitely.
-  await invoke('reader_ready');
+  await invoke('reader_ready', { timings: startupTimings });
 }
 void startup().catch(error => notify(String(error), true));

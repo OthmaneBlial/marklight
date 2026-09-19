@@ -42,12 +42,27 @@ fn copy_text(state: tauri::State<'_, State>, text: String) -> Result<(), String>
 
 // Opt-in local measurement only; the path comes from the launching process,
 // never from document content or JavaScript. Normal launches write no metrics.
+#[derive(serde::Deserialize, serde::Serialize)]
+struct FrontendTimings {
+    ipc_ms: f64,
+    template_ms: f64,
+    decoration_ms: f64,
+    chunks_ms: f64,
+    attach_ms: f64,
+    outline_ms: f64,
+    finish_ms: f64,
+    total_ms: f64,
+}
+
 #[tauri::command]
-fn reader_ready(state: tauri::State<'_, State>) -> Result<(), String> {
+fn reader_ready(
+    state: tauri::State<'_, State>,
+    timings: Option<FrontendTimings>,
+) -> Result<(), String> {
     if let Some(path) = std::env::var_os("MARKLIGHT_BENCH_OUTPUT")
         && !state.ready.swap(true, Ordering::Relaxed)
     {
-        let report = serde_json::json!({"ready_ms":state.started.elapsed().as_secs_f64()*1000.0,"pid":std::process::id()});
+        let report = serde_json::json!({"ready_ms":state.started.elapsed().as_secs_f64()*1000.0,"pid":std::process::id(),"frontend":timings});
         std::fs::write(
             path,
             serde_json::to_vec(&report).map_err(|e| e.to_string())?,

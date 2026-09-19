@@ -159,6 +159,27 @@ test('outline navigation and reload preserve the active heading context', async 
   expect(await page.locator('#viewport').evaluate(el => el.scrollTop)).toBeGreaterThan(500);
 });
 
+test('scroll progress does not measure headings in offscreen chunks', async ({ page }) => {
+  await reader(page, 'huge');
+  const measuredFarHeadings = await page.evaluate(() => {
+    const headings = Array.from(document.querySelectorAll('#document [data-heading-id]'));
+    const far = new Set(headings.slice(200));
+    const original = Element.prototype.getBoundingClientRect;
+    let count = 0;
+    Element.prototype.getBoundingClientRect = function (...args) {
+      if (far.has(this)) count++;
+      return original.apply(this, args);
+    };
+    try { document.getElementById('viewport')!.dispatchEvent(new Event('scroll')); }
+    finally { Element.prototype.getBoundingClientRect = original; }
+    return count;
+  });
+  expect(measuredFarHeadings).toBe(0);
+  await page.locator('#outline a[data-heading="section-700"]').click();
+  await expect(page.locator('#document [data-heading-id="section-700"]')).toBeFocused();
+  await expect(page.locator('#outline a[data-heading="section-700"]')).toHaveAttribute('aria-current', 'location');
+});
+
 test('native drop/menu wiring, relative Markdown links and recent history', async ({ page }) => {
   await reader(page,'links');
   await page.locator('#document a').filter({ hasText: 'Local' }).click();
