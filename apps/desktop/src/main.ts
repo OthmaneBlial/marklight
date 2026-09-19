@@ -21,6 +21,7 @@ let searchActions = Promise.resolve();
 let searchPending = false;
 let actions = Promise.resolve();
 let toastTimer: ReturnType<typeof setTimeout>;
+let errorRetry: (() => void) | null = null;
 let reloadTimer: ReturnType<typeof setTimeout>;
 let searchTimer: ReturnType<typeof setTimeout>;
 let preferencesTimer: ReturnType<typeof setTimeout>;
@@ -51,6 +52,16 @@ function notify(message: string, error = false) {
   clearTimeout(toastTimer); const toast = $('toast');
   toast.textContent = message; toast.classList.toggle('error', error); toast.hidden = false;
   toastTimer = setTimeout(() => { toast.hidden = true; }, error ? 8000 : 2000);
+}
+function showReaderError(message: string, retry?: () => void) {
+  $('reader-error-text').textContent = message;
+  errorRetry = retry ?? null;
+  $('reader-retry').hidden = !retry;
+  $('reader-error').hidden = false;
+}
+function clearReaderError() {
+  $('reader-error').hidden = true;
+  errorRetry = null;
 }
 function enqueue(action: () => Promise<void>) { actions = actions.then(action).catch(error => notify(String(error), true)); }
 function yieldToUi() {
@@ -300,12 +311,18 @@ function open(path: string, anchor?: string | null, mode: HistoryMode = 'push', 
         const previous = current && { path: current.path, reading: context() };
         const timings = await render(payload, false, anchor, request, target?.reading);
         if (timings) {
+          clearReaderError();
           if (!startupTimings) startupTimings = { ...timings, ipc_ms: received - invoked };
           if (mode === 'back') { historyBack.pop(); if (previous) remember(historyForward, previous); }
           else if (mode === 'forward') { historyForward.pop(); if (previous) remember(historyBack, previous); }
           else if (previous) { remember(historyBack, previous); historyForward.length = 0; }
           updateHistoryControls();
         }
+      }
+    } catch (error) {
+      if (request === openRequest) {
+        const name = path.split(/[/\\]/).at(-1) ?? path;
+        showReaderError(`Could not open ${name}. ${String(error)}`, () => open(path, anchor, mode, target));
       }
     } finally {
       if (request === openRequest) {
@@ -334,12 +351,27 @@ async function chooseFile() {
   if (!native) { notify('Run the Tauri desktop app to open local files.'); return; }
   openingDialog = true;
   try { const path = await invoke<string | null>('choose_file'); if (path) open(path); }
-  catch (error) { notify(String(error), true); } finally { openingDialog = false; }
+  catch (error) { showReaderError(`Could not choose a file. ${String(error)}`, () => { void chooseFile(); }); }
+  finally { openingDialog = false; }
 }
 function reload() {
   if (!current || !native) return;
   clearTimeout(reloadTimer);
-  reloadTimer = setTimeout(() => enqueue(async () => { await render(await invoke<Payload>('reload_document', { dark: dark() }), true); }), 120);
+  const request = openRequest;
+  const path = current.path;
+  reloadTimer = setTimeout(() => enqueue(async () => {
+    if (request !== openRequest || current?.path !== path) return;
+    try {
+      const payload = await invoke<Payload>('reload_document', { dark: dark() });
+      if (request === openRequest && current?.path === path) {
+        if (await render(payload, true, undefined, request)) clearReaderError();
+      }
+    } catch (error) {
+      if (request === openRequest && current?.path === path) {
+        showReaderError(`Could not reload ${current.name}. ${String(error)}`, reload);
+      }
+    }
+  }), 120);
 }
 function updateProgress() {
   const range = viewport.scrollHeight - viewport.clientHeight;
@@ -423,6 +455,8 @@ function toggleToc() {
 function toggleZen() { config.zen_mode = !config.zen_mode; savePreferences(); }
 function font(delta: number) { config.font_size = delta === 0 ? 16 : Math.max(12, Math.min(28, config.font_size + delta)); savePreferences(); }
 $('open').onclick = chooseFile; $('welcome-open').onclick = chooseFile;
+$('reader-retry').onclick = () => errorRetry?.();
+$('reader-error-close').onclick = clearReaderError;
 $('history-back').onclick = () => navigateHistory('back');
 $('history-forward').onclick = () => navigateHistory('forward');
 $<HTMLInputElement>('outline-filter').oninput = event => {
@@ -447,9 +481,11 @@ article.onclick = event => {
   event.preventDefault(); const href = link.getAttribute('href'); if (!href) return;
   if (viewport.getAttribute('aria-busy') === 'true') return;
   enqueue(async () => {
-    const navigation = await invoke<Navigation>('follow_link', { href });
-    if (navigation.kind === 'anchor') jumpToHeading(navigation.id);
-    if (navigation.kind === 'markdown') open(navigation.path, navigation.anchor);
+    try {
+      const navigation = await invoke<Navigation>('follow_link', { href });
+      if (navigation.kind === 'anchor') jumpToHeading(navigation.id);
+      if (navigation.kind === 'markdown') open(navigation.path, navigation.anchor);
+    } catch (error) { showReaderError(`Could not follow this link. ${String(error)}`); }
   });
 };
 document.querySelector('.wordmark')!.addEventListener('click', event => { event.preventDefault(); viewport.scrollTop = 0; });

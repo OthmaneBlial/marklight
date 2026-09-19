@@ -12,6 +12,9 @@ async function reader(page: Page, initial = 'gfm', recentNames: string[] = []) {
     let pending: string | null = fixtures[initial].path;
     const config = { theme: 'system', font_size: 16, toc: true, zen_mode: false, recent: recentNames.map(name => fixtures[name].path) as string[] };
     w.testCommands = [];
+    w.testFailOpenPath = null;
+    w.testReloadError = false;
+    w.testReloadDelay = 0;
     w.testEmit = (event: string, payload: unknown = null) => (events.get(event) ?? []).forEach(handler => callbacks.get(handler)?.({ event, payload }));
     w.testReload = null;
     w.__TAURI_INTERNALS__ = {
@@ -30,12 +33,17 @@ async function reader(page: Page, initial = 'gfm', recentNames: string[] = []) {
         if (command === 'choose_file') return fixtures.basic.path;
         if (command === 'open_document') {
           if (w.testOpenDelay) await new Promise(resolve => setTimeout(resolve, w.testOpenDelay));
+          if (w.testFailOpenPath === args.path) throw new Error('File unavailable');
           active = Object.keys(fixtures).find(name => fixtures[name].path === args.path) ?? '';
           if (!active) throw new Error('File not found');
           config.recent = [args.path, ...config.recent.filter(path => path !== args.path)].slice(0, 12);
           return { ...fixtures[active], html: args.dark ? fixtures[active].html_dark : fixtures[active].html, recent: config.recent };
         }
-        if (command === 'reload_document') return { ...(w.testReload ?? fixtures[active]), html: w.testReload?.html ?? (args.dark ? fixtures[active].html_dark : fixtures[active].html), recent: config.recent };
+        if (command === 'reload_document') {
+          if (w.testReloadDelay) await new Promise(resolve => setTimeout(resolve, w.testReloadDelay));
+          if (w.testReloadError) throw new Error('File was removed');
+          return { ...(w.testReload ?? fixtures[active]), html: w.testReload?.html ?? (args.dark ? fixtures[active].html_dark : fixtures[active].html), recent: config.recent };
+        }
         if (command === 'follow_link') {
           if (args.href.startsWith('#')) return { kind: 'anchor', id: args.href.slice(1) };
           if (args.href === 'basic.md') return { kind: 'markdown', path: fixtures.basic.path, anchor: null };
@@ -218,6 +226,41 @@ test('reading history restores a file, heading offset and forward visit', async 
   await expect.poll(() => page.locator('#viewport').evaluate(element => element.scrollTop)).toBeGreaterThan(500);
   await page.keyboard.press('Alt+ArrowRight');
   await expect(page.locator('#file-name')).toHaveText('basic.md');
+});
+
+test('failed open and reload retain the document with a persistent retry', async ({ page }) => {
+  await reader(page, 'gfm', ['basic']);
+  await page.evaluate(path => { (window as any).testFailOpenPath = path; }, fixtures.basic.path);
+  await page.locator('#recent button').filter({ hasText: 'basic.md' }).click();
+  const error = page.locator('#reader-error');
+  await expect(error).toContainText('Could not open basic.md');
+  await expect(page.locator('#document h1')).toHaveText('Marklight');
+  await expect(page.getByRole('button', { name: 'Back in reading history' })).toBeDisabled();
+  await page.evaluate(() => { (window as any).testFailOpenPath = null; });
+  await page.getByRole('button', { name: 'Retry' }).click();
+  await expect(page.locator('#file-name')).toHaveText('basic.md');
+  await expect(error).toBeHidden();
+  await page.evaluate(() => { (window as any).testReloadError = true; (window as any).testEmit('document-changed'); });
+  await expect(error).toContainText('Could not reload basic.md');
+  await expect(page.locator('#document h1')).toHaveText('Marklight');
+  await page.evaluate(payload => {
+    const w = window as any;
+    w.testReloadError = false;
+    w.testReload = { ...payload, html: '<p>Recovered on disk.</p>' + payload.html };
+  }, fixtures.basic);
+  await page.getByRole('button', { name: 'Retry' }).click();
+  await expect(page.locator('#document p').first()).toHaveText('Recovered on disk.');
+  await expect(error).toBeHidden();
+});
+
+test('an older reload response cannot replace a newer file choice', async ({ page }) => {
+  await reader(page, 'gfm', ['basic']);
+  await page.evaluate(() => { (window as any).testReloadDelay = 250; (window as any).testEmit('document-changed'); });
+  await expect.poll(() => page.evaluate(() => (window as any).testCommands.some((call: any) => call.command === 'reload_document'))).toBe(true);
+  await page.locator('#recent button').filter({ hasText: 'basic.md' }).click();
+  await expect(page.locator('#file-name')).toHaveText('basic.md');
+  await expect(page.locator('#document h1')).toHaveText('Marklight');
+  await expect(page.locator('#reader-error')).toBeHidden();
 });
 
 test('scroll progress does not measure headings in offscreen chunks', async ({ page }) => {
