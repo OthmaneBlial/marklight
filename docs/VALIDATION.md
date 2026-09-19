@@ -93,6 +93,22 @@ closed and the original TOML configuration restored byte-for-byte (SHA-256
 These checks do not establish a clean install from the public download,
 Finder drag/drop, VoiceOver speech output, or runtime behavior on another OS.
 
+The same macOS build was also inspected at a 400 px window in dark mode. The
+welcome actions and included two-page sample remained legible without
+horizontal clipping, and the narrow outline opened with its heading links
+visible. This is a native visual check, not a full contrast or screen-reader
+audit. At `0de1bad`, a keyboard regression test verified that Enter opens the
+narrow outline, focus moves to its first link, and Escape returns focus to the
+toggle. The frontend build and all 20 Chromium scenarios passed. The native
+build predates this last keyboard-only change, so native keyboard focus after
+`0de1bad` remains to be rechecked on a rebuilt app.
+
+The core/render test run after `0de1bad` passed 24 tests, including bounded
+traversal and hostile-markup mutations. `cargo fmt --check` passed after
+formatting, and strict Clippy passed for both crates with all targets. These
+tests run against source code and do not validate a new native package or
+downloaded release.
+
 ## Recheck on 2026-09-19 for roadmap baseline
 
 At local HEAD `4e4fd53` (only `ROADMAP.md` after the 0.1.1 code tag),

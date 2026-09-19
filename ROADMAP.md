@@ -59,17 +59,19 @@ un fichier écrit. État au 19 septembre 2026 :
   [rendu WebKit macOS inspecté](docs/VALIDATION.md#development-progress-after-v011-on-2026-09-19).
 - [ ] **2.1** Frontière des documents non fiables : lecture d'image désormais
   confinée par descripteur de dossier après substitution de symlink ; audit
-  RustSec/npm et politique de réexamen ajoutés ; image locale et image distante
-  bloquée vérifiées en WebKit. Restent la revue adversariale complète et les
-  autres OS avant de cocher la tâche.
+  RustSec/npm et politique de réexamen ajoutés ; mutations bornées des chemins
+  et du HTML testées ; image locale et image distante bloquée vérifiées en
+  WebKit. Restent la revue sur le commit final et les autres OS annoncés.
 - [ ] **2.2** Focus du lecteur et du mode Zen corrigé, état annoncé ;
-  sélecteur, recherche et navigation macOS exercés. Dépôt Finder et revue
+  sélecteur, recherche et navigation macOS exercés ; sommaire étroit vérifié
+  au clavier dans Chromium. Dépôt Finder, essai natif du dernier focus et revue
   VoiceOver/lecteur d'écran encore absents.
 - [ ] **2.3** Architecture et régressions.
 - [ ] **3.1** Exemple local à deux pages empaqueté et ouvert depuis l'accueil
   dans un build macOS ; fichier personnel ouvert par le sélecteur. Essai sur
   installation propre du paquet distribué et retour novice encore absents.
-- [ ] **3.2** États visuels réels.
+- [ ] **3.2** Accueil/exemple sombre à 400 px et alertes claires à 1120 px
+  inspectés dans WebKit macOS ; autres états et captures finales à vérifier.
 - [ ] **4.1** Porte de qualité et décision CI.
 - [ ] **4.2** Plateformes installées et validées.
 - [ ] **4.3** Confiance macOS et registres.
