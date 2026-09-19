@@ -125,6 +125,16 @@ The local log is ignored `artifacts/phase4-head-gate.log`; generated Rust debug
 build files were cleaned afterward to restore disk space. This remains a local
 source gate, not the gate on a future versioned release commit.
 
+After the deferred-layout measurements, `scripts/package.sh` rebuilt the local
+macOS arm64 artifacts into ignored `artifacts/phase4-final-package/` from the
+same product code. `check-macos-package.py` passed checksums, extracted ZIP app
+version and ad hoc seal, bundled sample byte equality, read-only DMG mount and
+CLI golden output. A fresh local npm tarball in
+`artifacts/phase4-final-npm/` passed `check-npm.py`, and the CLI archive passed
+the real PTY pager smoke (`less`, `/` search and `q`). These artifacts still
+carry the existing **0.1.1** version and are not a public release, downloaded
+assets, notarized packages or clean-profile installation proof.
+
 The extended `./scripts/check.sh` passed on clean commit `2960518` on macOS
 26.6 / Apple M2 arm64 with Rust 1.95.0, Node 25.9.0, npm 11.12.1 and Python
 3.14.6. It completed npm clean install and frontend build, formatting, strict

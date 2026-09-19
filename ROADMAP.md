@@ -93,7 +93,9 @@ un fichier écrit. État au 19 septembre 2026 :
 - [ ] **4.3** Confiance macOS et registres.
 - [ ] **4.4** ZIP/DMG/CLI/npm locaux construits en dossiers séparés et soumis
   aux smokes de checksum, extraction, sceau, contenu et commande réelle sur
-  macOS arm64 ; version/tag de release et téléchargement final encore absents.
+  macOS arm64 ; un second paquet local issu du code de lecture différée a passé
+  les mêmes contrôles et le smoke PTY `less`. Version/tag de release et
+  téléchargement final encore absents.
 - [ ] **5.1** README et captures natives.
 - [ ] **5.2** Site et documentation alignés.
 - [ ] **5.3** Modèles courts de bug, amélioration et pull request publiés ;
