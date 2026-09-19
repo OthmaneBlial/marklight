@@ -33,6 +33,25 @@ def cpu_seconds(pid):
     result=0.0
     for part in value.split(':'):result=result*60+float(part)
     return result
+def process_tree_rss(pid):
+    rows = {}
+    rss_by_pid = {}
+    for row in subprocess.check_output(['ps','-axo','pid=,ppid=,rss='], text=True).splitlines():
+        parts = row.split()
+        if len(parts) != 3: continue
+        child, parent, rss = map(int, parts)
+        rss_by_pid[child] = rss
+        rows.setdefault(parent, []).append((child, rss))
+    seen = set()
+    stack = [pid]
+    total = 0
+    while stack:
+        current = stack.pop()
+        if current in seen: continue
+        seen.add(current)
+        total += rss_by_pid.get(current, 0)
+        stack.extend(child for child, _ in rows.get(current, []))
+    return total
 if args.desktop:
     samples=[];idle=[]
     documents=[args.document]*args.startup_runs
@@ -74,7 +93,7 @@ if args.desktop:
                     elapsed=time.perf_counter()-begin
                     cpu=(cpu_seconds(native_pid)-before)/elapsed*100
                     rss=int(subprocess.check_output(['ps','-p',str(native_pid),'-o','rss='],text=True).strip())
-                    idle.append({'native_cpu_percent':cpu,'native_rss_kib':rss,'interval_seconds':elapsed})
+                    idle.append({'native_cpu_percent':cpu,'native_rss_kib':rss,'process_tree_rss_kib':process_tree_rss(native_pid),'interval_seconds':elapsed})
         finally:
             for pid in (app_pids()-before_pids):
                 try:os.kill(pid,signal.SIGTERM)
