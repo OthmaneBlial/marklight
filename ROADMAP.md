@@ -31,6 +31,38 @@ La valeur distinctive **possible** est la combinaison terminal + lecteur natif, 
 4. Les documents actuels (`docs/PLAN.md`, `CONTRIBUTING.md`, `scripts/check.sh`) interdisent intentionnellement les GitHub Actions sans décision du mainteneur. La phase d'automatisation comprend cette décision explicite et l'alignement de ces fichiers ; ce plan ne modifie pas ce réglage.
 5. La **phase vidéo est la dernière**. Elle démarre seulement quand toutes les tâches et validations des phases précédentes sont terminées, y compris la vérification du produit livré.
 
+## Suivi d'exécution
+
+Une case cochée représente la tâche entière et ses validations, pas seulement
+un fichier écrit. État au 19 septembre 2026 :
+
+- [ ] **0.1** Positionnement et parcours : [comparaison bornée](docs/POSITIONING.md)
+  rédigée, essais locaux Glow/VS Code faits ; revue par une personne extérieure
+  et comparaison pratique de MarkText encore absentes.
+- [x] **0.2** [Baseline 0.1.1](docs/PERFORMANCE.md) datée, gates locaux
+  réussis, [mesures brutes](docs/measurements-0.1.1-baseline.json) et
+  [contrat de release](docs/RELEASE-CHECKLIST.md) publiés. Cela ne valide pas
+  les téléchargements publics ou les autres OS.
+- [ ] **1.1** Gros documents et mesures end-to-end.
+- [ ] **1.2** Recherche et sommaire à grande échelle.
+- [ ] **1.3** Historique, rechargement et erreurs.
+- [ ] **1.4** Dialecte Markdown choisi et testé.
+- [ ] **2.1** Frontière des documents non fiables.
+- [ ] **2.2** Gestes natifs et accessibilité.
+- [ ] **2.3** Architecture et régressions.
+- [ ] **3.1** Première utilisation.
+- [ ] **3.2** États visuels réels.
+- [ ] **4.1** Porte de qualité et décision CI.
+- [ ] **4.2** Plateformes installées et validées.
+- [ ] **4.3** Confiance macOS et registres.
+- [ ] **4.4** Artefacts traçables.
+- [ ] **5.1** README et captures natives.
+- [ ] **5.2** Site et documentation alignés.
+- [ ] **5.3** Adoption et contributions.
+- [ ] **5.4** Release publiée et testée depuis téléchargement.
+- [ ] **6.1** Captures d'usage réel après toutes les autres phases.
+- [ ] **6.2** Montage, exports et lecture intégrale vérifiée.
+
 ## Phase 0 — Positionnement et référence reproductible (P0)
 
 ### 0.1 — Définir le parcours qui mérite d'être partagé
