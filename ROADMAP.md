@@ -80,7 +80,10 @@ un fichier écrit. État au 19 septembre 2026 :
   dans un build macOS ; fichier personnel ouvert par le sélecteur. Essai sur
   installation propre du paquet distribué et retour novice encore absents.
 - [ ] **3.2** Accueil/exemple sombre à 400 px et alertes claires à 1120 px
-  inspectés dans WebKit macOS ; autres états et captures finales à vérifier.
+  inspectés dans WebKit macOS ; le build natif a maintenant aussi vérifié le
+  document sans titre, le long chemin, le tableau défilable et l’image absente
+  en clair et en sombre. Il reste la capture native finale et une vérification
+  dédiée à 400 px avant de cocher.
 - [ ] **4.1** Porte manuelle étendue (versions, Clippy toutes features,
   Playwright et site) repassée sur `5d363b4` propre ; un test Rust cassé est
   rejeté. Les captures du test vont désormais dans `artifacts/` ignoré et ne

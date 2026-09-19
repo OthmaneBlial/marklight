@@ -89,6 +89,20 @@ the outline reported `1–100 of 40,817`, and the app exited cleanly through its
 menu. Configuration was restored byte-for-byte. No public download or
 screen-reader speech output was tested.
 
+## Native boundary-state visual check on 2026-09-19
+
+The same local macOS arm64 app opened the non-heading fixture
+`artifacts/ui-qa/no-headings-long.md` through the native picker. The WebKit
+accessibility tree and screenshot showed readable body text without a fake
+heading, a long path wrapped inside the reading column, a labelled
+`Scrollable Markdown table`, and an explicit unavailable-image note for the
+missing local asset. Switching the native theme menu to **Dark** kept the
+table, path and note readable with visible controls and no apparent clipping.
+The app was closed from its menu and the saved configuration was restored with
+the original SHA-256. This adds a native desktop/screenshot check for the
+no-heading, long-path, table and missing-image states; it is not a VoiceOver
+speech audit and does not replace a 400 px native window check.
+
 ## Manual gate and local package rehearsal on 2026-09-19
 
 The complete `./scripts/check.sh` gate was rerun on clean commit `5d363b4`
