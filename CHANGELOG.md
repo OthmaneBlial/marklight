@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Defer the first viewport layout pass so opening a document can become
+  interactive before progress and outline bookkeeping run.
+- Short-circuit literal searches that cannot match a document chunk and keep
+  highlight cleanup scoped to the previous result set.
+- Add repository issue and pull request templates, dependency audit notes and
+  a repeatable local package rehearsal.
+
 ## 0.1.1 — 2026-09-16
 
 - Keep recent-file opening responsive on dense documents by preparing HTML

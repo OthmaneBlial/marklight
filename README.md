@@ -116,6 +116,8 @@ existing compatible binary. `./scripts/check.sh` runs the local gates.
 workflows are created or required.
 
 [Architecture](docs/ARCHITECTURE.md) · [Contributing](CONTRIBUTING.md) ·
+[Report a bug](https://github.com/OthmaneBlial/marklight/issues/new?template=bug_report.md) ·
+[Request a reading improvement](https://github.com/OthmaneBlial/marklight/issues/new?template=feature_request.md) ·
 [Changelog](CHANGELOG.md) · [MIT license](LICENSE)
 
 If Marklight improves your daily reading, **give the repository a star**.
