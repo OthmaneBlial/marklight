@@ -1,5 +1,5 @@
 use marklight_core::Document;
-use pulldown_cmark::{Event, Tag, TagEnd};
+use pulldown_cmark::{BlockQuoteKind, Event, Tag, TagEnd};
 use textwrap::core::display_width;
 
 #[derive(Debug, Clone, Copy)]
@@ -84,9 +84,12 @@ pub fn render_terminal(document: &Document, options: TerminalOptions) -> String 
                 r.heading = None;
                 r.blank();
             }
-            Event::Start(Tag::BlockQuote(_)) => {
+            Event::Start(Tag::BlockQuote(kind)) => {
                 r.flush(true);
                 r.quotes += 1;
+                if let Some(kind) = kind {
+                    r.line(alert_label(*kind));
+                }
             }
             Event::End(TagEnd::BlockQuote(_)) => {
                 r.flush(false);
@@ -180,6 +183,16 @@ pub fn render_terminal(document: &Document, options: TerminalOptions) -> String 
     }
     r.flush(false);
     r.output.trim_end().to_owned() + "\n"
+}
+
+fn alert_label(kind: BlockQuoteKind) -> &'static str {
+    match kind {
+        BlockQuoteKind::Note => "NOTE",
+        BlockQuoteKind::Tip => "TIP",
+        BlockQuoteKind::Important => "IMPORTANT",
+        BlockQuoteKind::Warning => "WARNING",
+        BlockQuoteKind::Caution => "CAUTION",
+    }
 }
 
 struct Renderer {
@@ -373,6 +386,44 @@ mod tests {
         let styled = render_terminal(&doc, TerminalOptions::default());
         for sequence in ["\x1b[1m", "\x1b[3m", "\x1b[9m"] {
             assert!(styled.contains(sequence));
+        }
+    }
+    #[test]
+    fn gfm_alerts_keep_their_kind_in_plain_terminal_output() {
+        let doc = Document::parse(include_str!("../../../fixtures/markdown/alerts.md"));
+        let plain = render_terminal(
+            &doc,
+            TerminalOptions {
+                ansi: false,
+                ..Default::default()
+            },
+        );
+        for label in ["NOTE", "TIP", "IMPORTANT", "WARNING", "CAUTION"] {
+            assert!(plain.contains(&format!("│ {label}")), "{plain}");
+        }
+        assert!(plain.contains("setup guide (basic.md)"));
+        assert!(!plain.contains("[!NOTE]"));
+        assert!(!plain.contains("<script>"));
+    }
+    #[test]
+    fn unsupported_extensions_remain_visible_in_plain_output() {
+        let doc = Document::parse(include_str!("../../../fixtures/markdown/dialect-limits.md"));
+        let plain = render_terminal(
+            &doc,
+            TerminalOptions {
+                ansi: false,
+                ..Default::default()
+            },
+        );
+        for fragment in [
+            "note[^ref]",
+            "[^ref]:",
+            "title: Not parsed",
+            "$x^2$",
+            "[[Wiki Link]]",
+            "╭─ mermaid",
+        ] {
+            assert!(plain.contains(fragment), "{fragment}: {plain}");
         }
     }
     #[test]

@@ -252,6 +252,30 @@ mod tests {
     }
 
     #[test]
+    fn classifies_gfm_alerts_without_losing_local_links() {
+        let doc = Document::parse(include_str!("../../../fixtures/markdown/alerts.md"));
+        let kinds: Vec<_> = doc
+            .events
+            .iter()
+            .filter_map(|event| match event {
+                Event::Start(Tag::BlockQuote(kind)) => *kind,
+                _ => None,
+            })
+            .collect();
+        assert_eq!(
+            kinds,
+            [
+                pulldown_cmark::BlockQuoteKind::Note,
+                pulldown_cmark::BlockQuoteKind::Tip,
+                pulldown_cmark::BlockQuoteKind::Important,
+                pulldown_cmark::BlockQuoteKind::Warning,
+                pulldown_cmark::BlockQuoteKind::Caution,
+            ]
+        );
+        assert!(doc.links.iter().any(|link| link.destination == "basic.md"));
+    }
+
+    #[test]
     fn repeated_heading_ids_scale_and_remain_unique() {
         let doc = Document::parse(&"# Repeated\n".repeat(10000));
         assert_eq!(doc.headings[9999].id, "repeated-9999");

@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { readFileSync, mkdirSync } from 'node:fs';
-const fixtures = Object.fromEntries(['gfm','basic','links','broken-link','huge','malicious-html','unicode','tables','code','ui-collisions'].map(name => [name, JSON.parse(readFileSync(new URL(`../../../artifacts/frontend-fixtures/${name}.json`, import.meta.url), 'utf8'))]));
+const fixtures = Object.fromEntries(['gfm','basic','links','broken-link','alerts','huge','malicious-html','unicode','tables','code','ui-collisions'].map(name => [name, JSON.parse(readFileSync(new URL(`../../../artifacts/frontend-fixtures/${name}.json`, import.meta.url), 'utf8'))]));
 async function reader(page: Page, initial = 'gfm', recentNames: string[] = []) {
   await page.addInitScript(({ fixtures, initial, recentNames }) => {
     const w = window as any;
@@ -267,6 +267,19 @@ test('a missing relative link can be retried after its target appears', async ({
   await page.getByRole('button', { name: 'Retry' }).click();
   await expect(page.locator('#file-name')).toHaveText('basic.md');
   await expect(page.locator('#reader-error')).toBeHidden();
+});
+
+test('GFM alerts have visible labels and preserve a safe local link', async ({ page }) => {
+  const external: string[] = [];
+  page.on('request', request => { if (!request.url().startsWith('http://127.0.0.1:1420')) external.push(request.url()); });
+  await reader(page, 'alerts');
+  for (const [kind, title] of [['note','Note'], ['tip','Tip'], ['important','Important'], ['warning','Warning'], ['caution','Caution']]) {
+    await expect(page.locator(`#document blockquote.markdown-alert-${kind} .markdown-alert-title`)).toHaveText(title);
+  }
+  await expect(page.locator('#document script')).toHaveCount(0);
+  expect(external).toEqual([]);
+  await page.getByRole('link', { name: 'setup guide' }).click();
+  await expect(page.locator('#file-name')).toHaveText('basic.md');
 });
 
 test('an older reload response cannot replace a newer file choice', async ({ page }) => {

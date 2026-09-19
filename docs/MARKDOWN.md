@@ -10,11 +10,30 @@ rules, links, tables and task lists. The desktop additionally displays syntax
 highlighting and scoped local raster images. Terminal images are labelled
 references. Wide tables wrap cells or use a vertical layout on narrow terminals.
 
+| Input | Desktop reader | Terminal reader | Checked with |
+|---|---|---|---|
+| CommonMark headings, lists, code, links | Rendered; generated heading anchors | Rendered; URLs remain visible | `basic.md`, `nested-lists.md`, repository README/guides |
+| GFM tables, tasks, deletion, bare autolinks | Rendered, with scrollable wide tables | Rendered, with narrow-table fallback | `gfm.md`, `tables.md`, `links.md` |
+| GFM `[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, `[!CAUTION]` | Labelled, coloured callouts | Labelled quote blocks | `alerts.md` |
+| Local raster image | Displayed only inside the document directory | Alt text and path reference | `images.md` |
+| Remote image, executable raw HTML | Blocked or reduced to safe text | Image reference or omitted HTML | `malicious-html.md`, `alerts.md` |
+| Footnote syntax, wiki links, inline math | Not interpreted; literal markers remain readable | Not interpreted; literal markers remain readable | `dialect-limits.md` |
+| Mermaid fence | Displayed as code, never executed | Displayed as code, never executed | `dialect-limits.md` |
+| YAML front matter | Parsed as ordinary Markdown, not metadata | Parsed as ordinary Markdown, not metadata | `dialect-limits.md` |
+
+The fixture table describes the implemented dialect, not GitHub rendering
+parity. The first-party `README.md`, `docs/INSTALLATION.md` and
+`docs/ARCHITECTURE.md` also have a regression test through both renderers.
+Footnotes remain deferred because references and definitions would need
+navigation that respects Marklight's generated anchors and link policy. Math,
+Mermaid rendering and MDX remain outside this offline, no-execution reader.
+
 ## Deliberate limits
 
 - This is not an editor. It does not execute code or render MDX/JSX.
-- Math/LaTeX, Mermaid diagrams, wiki links, footnotes and YAML front matter are
-  not interpreted in v0.1. Unsupported syntax stays ordinary document content.
+- Math/LaTeX, rendered Mermaid diagrams, wiki links, footnotes and YAML front
+  matter are not interpreted. Their syntax remains visible as literal text,
+  ordinary Markdown or a fenced code block as shown above.
 - Raw HTML is omitted in the terminal. The desktop retains basic safe
   formatting; scripts, embedded frames, forms, SVG, styles, event handlers,
   raw-HTML links/images and privileged attributes are removed. This is not a

@@ -4,7 +4,7 @@ use std::{
 };
 
 use marklight_core::Document;
-use pulldown_cmark::{CowStr, Event, Tag, TagEnd};
+use pulldown_cmark::{BlockQuoteKind, CowStr, Event, Tag, TagEnd};
 use syntect::{
     easy::HighlightLines,
     highlighting::ThemeSet,
@@ -67,6 +67,11 @@ pub fn render_html(document: &Document, options: &HtmlOptions<'_>) -> String {
                 heading += 1;
                 Some(Event::Start(Tag::Heading { level: *level, id: Some(CowStr::Borrowed(id)), classes: vec![], attrs: vec![] }))
             }
+            Event::Start(Tag::BlockQuote(Some(kind))) => {
+                let (class, label) = alert_parts(*kind);
+                Some(Event::Html(format!("<blockquote class=\"markdown-alert-{class}\"><p class=\"markdown-alert-title\">{label}</p>").into()))
+            }
+            Event::End(TagEnd::BlockQuote(Some(_))) => Some(Event::Html("</blockquote>".into())),
             Event::Start(Tag::Image { link_type, dest_url, title, id }) => {
                 let url = options.image_url.and_then(|resolve| resolve(dest_url)).unwrap_or_default();
                 Some(Event::Start(Tag::Image { link_type: *link_type, dest_url: url.into(), title: CowStr::Borrowed(title), id: CowStr::Borrowed(id) }))
@@ -90,6 +95,16 @@ pub fn render_html(document: &Document, options: &HtmlOptions<'_>) -> String {
         .url_schemes(["http", "https", "mailto", "marklight-image"].into())
         .link_rel(Some("noreferrer noopener"));
     cleaner.clean(&html).to_string()
+}
+
+fn alert_parts(kind: BlockQuoteKind) -> (&'static str, &'static str) {
+    match kind {
+        BlockQuoteKind::Note => ("note", "Note"),
+        BlockQuoteKind::Tip => ("tip", "Tip"),
+        BlockQuoteKind::Important => ("important", "Important"),
+        BlockQuoteKind::Warning => ("warning", "Warning"),
+        BlockQuoteKind::Caution => ("caution", "Caution"),
+    }
 }
 
 fn highlight_code(code: &str, language: &str, dark: bool) -> String {
@@ -131,6 +146,32 @@ fn escape(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{TerminalOptions, render_terminal};
+    #[test]
+    fn repository_readme_and_guides_render_in_both_interfaces() {
+        for source in [
+            include_str!("../../../README.md"),
+            include_str!("../../../docs/INSTALLATION.md"),
+            include_str!("../../../docs/ARCHITECTURE.md"),
+        ] {
+            let doc = Document::parse(source);
+            assert!(!doc.headings.is_empty());
+            let html = render_html(&doc, &HtmlOptions::default());
+            let plain = render_terminal(
+                &doc,
+                TerminalOptions {
+                    ansi: false,
+                    ..Default::default()
+                },
+            );
+            assert!(html.contains("<h1"), "{}", doc.metadata.title);
+            assert!(
+                plain.contains(&doc.metadata.title),
+                "{}",
+                doc.metadata.title
+            );
+        }
+    }
     #[test]
     fn large_code_is_highlighted_and_repeated_blocks_keep_distinct_copy_ids() {
         let source = "let value = 42;\n".repeat(9000);
@@ -161,6 +202,38 @@ mod tests {
             assert!(!html.contains(forbidden), "{forbidden}: {html}");
         }
         assert!(html.contains("Safe text"));
+    }
+    #[test]
+    fn alerts_have_visible_safe_labels_and_keep_local_links() {
+        let doc = Document::parse(include_str!("../../../fixtures/markdown/alerts.md"));
+        let html = render_html(&doc, &HtmlOptions::default());
+        for (kind, label) in [
+            ("note", "Note"),
+            ("tip", "Tip"),
+            ("important", "Important"),
+            ("warning", "Warning"),
+            ("caution", "Caution"),
+        ] {
+            assert!(
+                html.contains(&format!("class=\"markdown-alert-{kind}\"")),
+                "{html}"
+            );
+            assert!(html.contains(&format!(">{label}</p>")), "{html}");
+        }
+        assert!(html.contains("href=\"basic.md\""));
+        assert!(!html.contains("<script"));
+        assert!(!html.contains("javascript:"));
+        assert!(!html.contains("onclick="));
+    }
+    #[test]
+    fn unsupported_extensions_stay_inert_and_readable() {
+        let doc = Document::parse(include_str!("../../../fixtures/markdown/dialect-limits.md"));
+        let html = render_html(&doc, &HtmlOptions::default());
+        assert!(html.contains("note[^ref]"), "{html}");
+        assert!(html.contains("[[Wiki Link]]"), "{html}");
+        assert!(html.contains("data-language=\"mermaid\""), "{html}");
+        assert!(!html.contains("<svg"));
+        assert!(!html.contains("<script"));
     }
     #[test]
     fn renders_unique_anchors_scoped_images_and_highlighted_code() {
