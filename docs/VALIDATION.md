@@ -1,4 +1,22 @@
-# Validation — v0.1.1
+# Validation — v0.1.1 baseline and current development
+
+## Development progress after v0.1.1 on 2026-09-19
+
+At local source commit `91ff716`, `npm run build` and 12 Playwright scenarios
+passed. The added regressions cover a 100-link outline window, heading filter,
+position after reload, search replacement/close/reopen/file switch, and the
+10,000-match display cap. A pathological 10,001-match single paragraph timed
+out after 30 seconds with the prior marking algorithm; it completed in the
+updated browser test. These are Chromium tests using the Rust-generated fixture
+adapter except the explicit synthetic match-cap case.
+
+A **local development build** of the macOS arm64 app opened the generated
+100,000-byte Markdown file through the native picker. Its WebKit accessibility
+tree showed 409 headings with outline pages `1–100` and `101–200`; native
+search reported `1 / 409`, then `2 / 409` after Next. The actual WebKit window
+was visually inspected. The app was closed and the prior outline preference
+restored. This does not validate search response time at 1/10 MB, a screen
+reader, the public 0.1.1 download, or a new release.
 
 ## Recheck on 2026-09-19 for roadmap baseline
 

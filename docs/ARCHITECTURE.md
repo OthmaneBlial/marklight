@@ -44,7 +44,12 @@ documents are grouped into chunks with deferred offscreen layout; their text
 and DOM nodes remain present. Assembly yields between chunks and checks for a
 newer open request. Canonical heading anchors map to separate DOM identifiers
 so headings named after reader controls cannot overwrite those controls.
-Active-heading lookup uses a binary search and changes only two outline links.
+Active-heading lookup searches only headings in the visible document chunk.
+Outlines with more than 400 headings keep at most 100 links in the DOM at a
+time, with filtering and page controls to reach distant sections. Search
+clears and marks one document chunk at a time, yielding between chunks and
+discarding stale queries after user input or a document change. Marking a text
+node builds one replacement fragment instead of editing the DOM once per match.
 
 Image requests use a custom Tauri URI protocol with opaque generation tokens.
 Only referenced local raster files in the document directory tree are granted;

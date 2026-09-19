@@ -34,8 +34,9 @@ references. Wide tables wrap cells or use a vertical layout on narrow terminals.
 - Documents must be UTF-8 regular files and are capped at 32 MiB. Local images
   are capped at 16 MiB per request. Recognized code languages are highlighted;
   unknown languages remain plain code. The document still loads as a whole;
-  there is no virtualization. Search highlights up to 10,000 matches and shows
-  a `+` when that limit is reached.
+  there is no document virtualization. For documents with more than 400
+  headings, the outline shows 100 at a time and offers a heading filter. Search
+  highlights up to 10,000 matches and shows a `+` only when more matches exist.
 - `marklight -` supports stdin in the terminal; the GUI requires a saved file.
 
 The fixture directory covers normal, Unicode, nested-list and hostile inputs.

@@ -47,7 +47,9 @@ un fichier écrit. État au 19 septembre 2026 :
   sommaire fenêtré implémentés ; [profil expérimental](docs/PERFORMANCE.md#phase-1-development-profile-on-2026-09-19)
   enregistré. Cible 10 Mo, interactions, guide varié et mémoire complète encore
   non validés.
-- [ ] **1.2** Recherche et sommaire à grande échelle.
+- [ ] **1.2** Recherche par morceaux avec annulation, plafond exact et sommaire
+  filtrable implémentés ; tests Chromium et essai natif à 100 Ko passés.
+  Réactivité native mesurée à 1/10 Mo et audit lecteur d'écran encore absents.
 - [ ] **1.3** Historique, rechargement et erreurs.
 - [ ] **1.4** Dialecte Markdown choisi et testé.
 - [ ] **2.1** Frontière des documents non fiables.
