@@ -15,10 +15,25 @@ text cannot match the literal query and clears marks only in chunks that were
 previously highlighted. TypeScript/Vite build and all 20 Chromium scenarios
 passed. The large-document scenario additionally checked an absent literal
 with regex punctuation, removal of the old mark, and a new successful query.
-This code has **not yet** been exercised in a rebuilt native app; neither the
-speed improvement nor the 1/10 MB native interaction targets are claimed.
-After the native observation, Marklight exited and the pre-test configuration
-was restored byte-for-byte with matching SHA-256.
+
+A macOS arm64 `.app` rebuilt from clean source commit `a2cc078` (executable
+SHA-256 `4bbdb2f0eeffc583b7ca92e3b72062c9c1d3f94821778be9c7dbd77398daffb0`)
+opened the same 10 MB corpus. Entering absent `zz-marker` showed “0 matches”
+on the first UI observation, which took about 1.7 seconds including automated
+typing and accessibility capture. Entering repeated `café` showed
+`1 / 10000+` on the next observation after “Searching…”. This is an observed
+improvement in completion of the absent query, **not** a controlled latency
+measurement or proof of the provisional 500 ms interaction target. The 1 MB
+case and screen-reader speech output remain untested on this build.
+
+The computer-use `Cmd+A` action caused the native app to exit after a document
+was loaded, including the small bundled sample, while it did not exit on the
+empty welcome screen. Using the native **Edit → Select All** menu selected the
+sample's search input and allowed the term to be replaced in the same process.
+The physical keyboard shortcut was not tested, so the cause and ordinary-user
+impact of the automated key action remain unresolved. The app was then quit
+through its menu; its process exited and the pre-test TOML configuration was
+restored byte-for-byte with matching SHA-256. No public download was tested.
 
 ## Repeated large-document measurement on 2026-09-19
 
