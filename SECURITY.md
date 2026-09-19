@@ -35,7 +35,9 @@ database and the desktop `package-lock.json` against npm advisories. The scan
 requires network access and a local `cargo-audit` installation; warnings about
 unmaintained or unsound transitive packages require review even when the command
 exits successfully. Record the scan date, database state and disposition in
-`docs/VALIDATION.md`. This is a known-advisory check, not a code security proof.
+`docs/VALIDATION.md`. See the [untrusted-document review](docs/SECURITY-REVIEW.md)
+for the current trust boundaries and remaining checks. This is a known-advisory
+check, not a code security proof.
 
 The first macOS build is not Developer ID signed or notarized. Verify checksums
 before installation; see the installation guide. No trusted distribution claim

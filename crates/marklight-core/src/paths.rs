@@ -202,6 +202,34 @@ mod tests {
         }
     }
     #[test]
+    fn encoded_schemes_and_fragments_cannot_change_link_authority() {
+        let tmp = tempfile::tempdir().unwrap();
+        let docs = tmp.path().join("docs");
+        std::fs::create_dir(&docs).unwrap();
+        let path = docs.join("README.md");
+        std::fs::write(&path, "# Intro").unwrap();
+        std::fs::write(tmp.path().join("outside.md"), "# Outside").unwrap();
+        for href in [
+            "javascript%3Aalert(1).md",
+            "%66ile:///etc/passwd",
+            "README.md#%00",
+            "README.md?raw=1",
+            "%5c%5cserver%5cprivate.md",
+            "data%3Atext/html,test.md",
+        ] {
+            assert!(classify_link(&path, href).is_err(), "{href}");
+        }
+        // Parent traversal is a deliberate user-clicked document link, unlike
+        // images, which are confined to the opened document's directory.
+        assert_eq!(
+            classify_link(&path, "../outside.md#section").unwrap(),
+            LinkTarget::Markdown {
+                path: tmp.path().join("outside.md").canonicalize().unwrap(),
+                anchor: Some("section".into()),
+            }
+        );
+    }
+    #[test]
     fn images_are_scoped_to_raster_files_in_document_tree() {
         let tmp = tempfile::tempdir().unwrap();
         let root = tmp.path().join("docs");
@@ -213,6 +241,10 @@ mod tests {
         for href in [
             "../private.png",
             "%2e%2e/private.png",
+            "%2e%2e%2fprivate.png",
+            "image.png%00",
+            "image.png#fragment",
+            "image.png?download=1",
             "image.svg",
             "https://x.com/i.png",
             "/etc/passwd",
