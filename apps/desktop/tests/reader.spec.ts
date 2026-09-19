@@ -84,6 +84,19 @@ test('heading names cannot overwrite controls and anchors target the document', 
   })).toBe(true);
 });
 
+test('opening and zen mode keep keyboard focus in a visible reading control', async ({ page }) => {
+  await reader(page, 'gfm');
+  await expect(page.locator('#viewport')).toBeFocused();
+  await expect(page.locator('#status')).toHaveAttribute('role', 'status');
+  const zen = page.getByRole('button', { name: 'Toggle zen mode' });
+  await zen.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#viewport')).toBeFocused();
+  await page.getByRole('button', { name: 'Leave zen mode' }).focus();
+  await page.keyboard.press('Enter');
+  await expect(zen).toBeFocused();
+});
+
 test('recent files open chunked documents and a newer click wins during loading', async ({ page }) => {
   await reader(page, 'gfm', ['huge', 'basic']);
   await page.locator('#recent button').filter({ hasText: 'huge.md' }).click();

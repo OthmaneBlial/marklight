@@ -269,6 +269,7 @@ async function render(payload: Payload, preserve = false, anchor?: string | null
   nextHeadings.forEach((heading, id) => documentHeadings.set(id, heading));
   headingElements = Array.from(documentHeadings.values());
   article.hidden = false; $('welcome').hidden = true;
+  if (!preserve) viewport.focus({ preventScroll: true });
   $('file-name').textContent = payload.name; $('file-name').title = payload.path;
   document.title = `${payload.name} — Marklight`;
   $('status').textContent = `${payload.metadata.words.toLocaleString()} WORDS · ${payload.metadata.reading_minutes} MIN READ · LIVE RELOAD`;
@@ -452,7 +453,12 @@ function toggleToc() {
   if (mobile.matches) { document.body.classList.toggle('mobile-outline'); config.toc = true; } else config.toc = !config.toc;
   savePreferences();
 }
-function toggleZen() { config.zen_mode = !config.zen_mode; savePreferences(); }
+function toggleZen() {
+  const focused = document.activeElement;
+  config.zen_mode = !config.zen_mode; savePreferences();
+  if (config.zen_mode && focused instanceof Element && focused.closest('.toolbar, aside, footer')) viewport.focus();
+  else if (!config.zen_mode && focused === $('leave-zen')) $('toggle-zen').focus();
+}
 function font(delta: number) { config.font_size = delta === 0 ? 16 : Math.max(12, Math.min(28, config.font_size + delta)); savePreferences(); }
 $('open').onclick = chooseFile; $('welcome-open').onclick = chooseFile;
 $('reader-retry').onclick = () => errorRetry?.();
