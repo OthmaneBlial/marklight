@@ -11,6 +11,17 @@ was created; the templates have not yet been used by a new contributor from a
 fresh checkout. The repository still uses a manual validation gate and has no
 GitHub Actions workflows.
 
+## Dependency audit on 2026-09-19
+
+`scripts/audit-deps.sh` passed on the current clean source commit `5df9059`.
+RustSec loaded 1,251 advisories and found **zero known vulnerabilities** in
+the lockfile; npm audit also reported zero vulnerabilities. It reported nine
+informational RustSec warnings about unmaintained or unsound transitive crates,
+including the Linux GTK `glib` path. These warnings remain documented in the
+security review and are not treated as cleared for a future Linux package.
+This is a known-advisory scan, not a complete security audit; repeat it on the
+final versioned release commit.
+
 ## Native 10 MB search observation and browser fix on 2026-09-19
 
 An extracted **local development package** opened the generated 10,000,000-byte
