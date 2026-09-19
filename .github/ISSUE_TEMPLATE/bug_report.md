@@ -24,4 +24,4 @@ Describe the result and what you expected to see.
 
 Add a short, redacted error message or screenshot if useful. Do not attach private
 documents, local path lists, credentials, or unredacted logs. For a security
-issue, use the private reporting path in [SECURITY.md](../../SECURITY.md).
+issue, use the [private reporting path](https://github.com/OthmaneBlial/marklight/security/policy).
