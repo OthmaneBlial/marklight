@@ -9,9 +9,11 @@ npm --prefix apps/desktop ci
 npm --prefix apps/desktop run build
 cargo fmt --check
 cargo clippy --workspace --all-targets -- -D warnings
+cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test --workspace
 cargo run -p marklight-render --example frontend_fixtures
 npm --prefix apps/desktop test
+node scripts/check-site.mjs
 ```
 
 Install a Playwright Chromium locally with `npx playwright install chromium`
@@ -19,6 +21,10 @@ from `apps/desktop`, or set `MARKLIGHT_CHROMIUM` to an existing compatible
 Chromium executable. No browser download is required for CLI-only development.
 `./scripts/check.sh` runs the complete local gate. There are intentionally no
 GitHub Actions and no automatic CI runs. Do not add workflows without approval.
+The gate prints its source revision, host and tool versions. Record its full
+output on the exact release commit; it does not build or validate a public
+download. Packaging, dependency review and native installation remain separate
+release checks in `docs/RELEASE-CHECKLIST.md`.
 
 For CLI-only changes, `cargo test` and `cargo clippy --all-targets -- -D warnings`
 use the default members and do not require desktop prerequisites. For desktop
