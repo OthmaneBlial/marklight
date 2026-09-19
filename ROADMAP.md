@@ -92,7 +92,10 @@ un fichier écrit. État au 19 septembre 2026 :
   macOS arm64 ; version/tag de release et téléchargement final encore absents.
 - [ ] **5.1** README et captures natives.
 - [ ] **5.2** Site et documentation alignés.
-- [ ] **5.3** Adoption et contributions.
+- [ ] **5.3** Modèles courts de bug, amélioration et pull request publiés ;
+  le sélecteur GitHub affiche les deux modèles d'issue et la voie privée de
+  sécurité. Métadonnées de dépôt vérifiées ; essai de contribution depuis un
+  checkout vierge et vrais sujets « good first issue » encore absents.
 - [ ] **5.4** Release publiée et testée depuis téléchargement.
 - [ ] **6.1** Captures d'usage réel après toutes les autres phases.
 - [ ] **6.2** Montage, exports et lecture intégrale vérifiée.

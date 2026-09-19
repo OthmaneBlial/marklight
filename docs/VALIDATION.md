@@ -1,5 +1,16 @@
 # Validation — v0.1.1 baseline and current development
 
+## Contribution entry points on 2026-09-19
+
+After commit `f06e552` was pushed to `main`, GitHub's signed-in issue chooser
+visibly listed **Bug report**, **Reading improvement**, **Blank issue** and the
+private security-reporting route. The public GitHub file view and community
+profile showed the pull request template. Read-only repository metadata showed
+Issues enabled, a description, homepage and 12 topics. No issue or pull request
+was created; the templates have not yet been used by a new contributor from a
+fresh checkout. The repository still uses a manual validation gate and has no
+GitHub Actions workflows.
+
 ## Native 10 MB search observation and browser fix on 2026-09-19
 
 An extracted **local development package** opened the generated 10,000,000-byte
