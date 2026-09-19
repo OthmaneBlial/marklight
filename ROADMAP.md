@@ -52,7 +52,10 @@ un fichier écrit. État au 19 septembre 2026 :
   Interactions et mémoire complète encore non validées.
 - [ ] **1.2** Recherche par morceaux avec annulation, plafond exact et sommaire
   filtrable implémentés ; tests Chromium et essai natif à 100 Ko passés.
-  Réactivité native mesurée à 1/10 Mo et audit lecteur d'écran encore absents.
+  Un essai natif à 10 Mo a affiché « Searching… » pendant plusieurs secondes
+  pour une requête absente ; les morceaux sans le terme sont maintenant écartés
+  avant le parcours des nœuds dans le code de développement. Réactivité native
+  du correctif mesurée à 1/10 Mo et audit lecteur d'écran encore absents.
 - [x] **1.3** Historique, rechargement et erreurs : retour/avance avec position
   restaurée, alerte persistante et reprise, réponse obsolète écartée ;
   [tests et essai WebKit natif](docs/VALIDATION.md#development-progress-after-v011-on-2026-09-19).

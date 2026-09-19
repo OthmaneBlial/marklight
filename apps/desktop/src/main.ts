@@ -3,7 +3,7 @@ import { convertFileSrc, invoke, isTauri } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { resolveResource } from '@tauri-apps/api/path';
-import { clearHighlights, highlight } from './search';
+import { clearHighlights, highlight, mightContain } from './search';
 import type { Config, Heading, Navigation, Payload, Theme } from './types';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -20,6 +20,7 @@ let moreMatches = false;
 let searchGeneration = 0;
 let searchActions = Promise.resolve();
 let searchPending = false;
+const highlightedRoots = new Set<HTMLElement>();
 let actions = Promise.resolve();
 let toastTimer: ReturnType<typeof setTimeout>;
 let errorRetry: (() => void) | null = null;
@@ -271,6 +272,11 @@ async function render(payload: Payload, preserve = false, anchor?: string | null
     }
   }
   const chunked = performance.now();
+  clearTimeout(searchTimer);
+  searchGeneration++;
+  highlightedRoots.clear();
+  matches = []; moreMatches = false; matchIndex = -1; searchPending = false;
+  $('match-count').textContent = '0 matches';
   current = payload; article.replaceChildren(body);
   chunkHeadings = nextChunkHeadings;
   const attached = performance.now();
@@ -428,20 +434,27 @@ function searchRoots() {
 }
 async function runSearch(generation: number, query: string, scroll: boolean) {
   const roots = searchRoots();
-  for (const root of roots) {
+  for (const root of highlightedRoots) {
     if (generation !== searchGeneration) return;
     clearHighlights(root);
     await yieldToUi();
   }
+  highlightedRoots.clear();
   if (!query || generation !== searchGeneration) {
     if (generation === searchGeneration) { searchPending = false; $('match-count').textContent = '0 matches'; }
     return;
   }
   const found: HTMLElement[][] = [];
   let hasMore = false;
+  let skipped = 0;
   for (const root of roots) {
     if (generation !== searchGeneration) return;
+    if (!mightContain(root, query)) {
+      if (++skipped % 16 === 0) await yieldToUi();
+      continue;
+    }
     const result = highlight(root, query, 10000 - found.length);
+    if (result.matches.length) highlightedRoots.add(root);
     found.push(...result.matches);
     if (result.hasMore) { hasMore = true; break; }
     await yieldToUi();

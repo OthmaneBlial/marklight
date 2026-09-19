@@ -1,5 +1,25 @@
 # Validation — v0.1.1 baseline and current development
 
+## Native 10 MB search observation and browser fix on 2026-09-19
+
+An extracted **local development package** opened the generated 10,000,000-byte
+Markdown corpus through the native macOS picker. WebKit reported 40,817
+headings, with outline links limited to `1–100` and working toggle state.
+Searching for absent `zz-marker` showed “Searching…” over successive UI
+observations for several seconds before “0 matches” appeared. This is a
+qualitative native observation, **not** an instrumented input-latency sample;
+it shows that the provisional 10 MB search goal is not established.
+
+The subsequent source change skips text-node grouping in chunks whose combined
+text cannot match the literal query and clears marks only in chunks that were
+previously highlighted. TypeScript/Vite build and all 20 Chromium scenarios
+passed. The large-document scenario additionally checked an absent literal
+with regex punctuation, removal of the old mark, and a new successful query.
+This code has **not yet** been exercised in a rebuilt native app; neither the
+speed improvement nor the 1/10 MB native interaction targets are claimed.
+After the native observation, Marklight exited and the pre-test configuration
+was restored byte-for-byte with matching SHA-256.
+
 ## Repeated large-document measurement on 2026-09-19
 
 The local macOS arm64 release build at clean source commit `2e97569` was

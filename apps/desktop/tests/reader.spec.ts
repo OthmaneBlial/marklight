@@ -204,6 +204,11 @@ test('large-document search can be replaced and reopened without stale highlight
   await input.fill('Section 700');
   await expect(page.locator('#match-count')).toHaveText('1 / 1');
   await expect(page.locator('#document mark')).toHaveCount(1);
+  await input.fill('Section [never]');
+  await expect(page.locator('#match-count')).toHaveText('0 matches');
+  await expect(page.locator('#document mark')).toHaveCount(0);
+  await input.fill('Section 700');
+  await expect(page.locator('#match-count')).toHaveText('1 / 1');
   await page.getByRole('button', { name: 'Close search' }).click();
   await expect(page.locator('#document mark')).toHaveCount(0);
   await page.getByRole('button', { name: 'Search document' }).click();

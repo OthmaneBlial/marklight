@@ -1,4 +1,14 @@
 /** Search rendered text, including phrases spanning inline styles. No innerHTML. */
+function literalPattern(query: string, flags: string): RegExp {
+  return new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags);
+}
+
+export function mightContain(root: HTMLElement, query: string): boolean {
+  // textContent keeps phrases spanning inline tags; a miss avoids walking and
+  // grouping every text node in a large chunk. False positives are harmless.
+  return literalPattern(query, 'iu').test(root.textContent ?? '');
+}
+
 export function clearHighlights(root: HTMLElement): void {
   const parents = new Set<HTMLElement>();
   root.querySelectorAll('mark[data-match]').forEach(mark => {
@@ -32,7 +42,7 @@ export function highlight(root: HTMLElement, query: string, limit = 10000): { ma
   }
   const matches: HTMLElement[][] = [];
   let hasMore = false;
-  const pattern = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'giu');
+  const pattern = literalPattern(query, 'giu');
   for (const list of groups.values()) {
     const text = list.map(item => item.node.data).join('');
     const spans: { start: number; end: number; index: number }[] = [];
