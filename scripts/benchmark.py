@@ -50,7 +50,10 @@ if args.desktop:
                 if process.poll() is not None:raise RuntimeError('native process exited before ready signal')
                 if time.monotonic()>deadline:raise RuntimeError('no native ready signal within 90 seconds; check existing instances')
                 time.sleep(.01)
-            native=json.loads(output.read_text());native_pid=native['pid'];native['observed_wall_ms']=(time.perf_counter()-start)*1000;native['document_bytes']=document.stat().st_size;samples.append(native)
+            native=json.loads(output.read_text())
+            if native.get('frontend') is None:
+                raise RuntimeError(f'native ready signal arrived before {document.name} finished rendering')
+            native_pid=native['pid'];native['observed_wall_ms']=(time.perf_counter()-start)*1000;native['document_bytes']=document.stat().st_size;samples.append(native)
             print(json.dumps(native),flush=True)
             if i==2:
                 time.sleep(3)
