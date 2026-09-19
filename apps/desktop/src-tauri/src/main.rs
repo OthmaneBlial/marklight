@@ -50,6 +50,9 @@ struct FrontendTimings {
     chunks_ms: f64,
     attach_ms: f64,
     outline_ms: f64,
+    recents_ms: f64,
+    scroll_ms: f64,
+    progress_ms: f64,
     finish_ms: f64,
     total_ms: f64,
 }

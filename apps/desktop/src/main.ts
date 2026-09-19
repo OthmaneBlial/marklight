@@ -22,7 +22,7 @@ let searchTimer: ReturnType<typeof setTimeout>;
 let preferencesTimer: ReturnType<typeof setTimeout>;
 let openingDialog = false;
 let openRequest = 0;
-type RenderTimings = { ipc_ms: number; template_ms: number; decoration_ms: number; chunks_ms: number; attach_ms: number; outline_ms: number; finish_ms: number; total_ms: number };
+type RenderTimings = { ipc_ms: number; template_ms: number; decoration_ms: number; chunks_ms: number; attach_ms: number; outline_ms: number; recents_ms: number; scroll_ms: number; progress_ms: number; finish_ms: number; total_ms: number };
 let startupTimings: RenderTimings | null = null;
 type ChunkHeadings = { headings: HTMLElement[]; previous: HTMLElement | undefined };
 let chunkHeadings = new WeakMap<HTMLElement, ChunkHeadings>();
@@ -184,6 +184,7 @@ function decorateCode(root: ParentNode, payload: Payload) {
 async function render(payload: Payload, preserve = false, anchor?: string | null, request = openRequest) {
   const started = performance.now();
   const reading = preserve ? context() : null;
+  const resetScroll = !preserve && viewport.scrollTop > 0;
   const template = document.createElement('template');
   template.innerHTML = payload.html;
   const content = template.content;
@@ -237,20 +238,24 @@ async function render(payload: Payload, preserve = false, anchor?: string | null
   paintOutline();
   const outlined = performance.now();
   recents(payload.recent);
+  const recented = performance.now();
   if (reading) {
     const heading = reading.id && documentHeadings.get(reading.id);
     viewport.scrollTop = heading ? viewport.scrollTop + heading.getBoundingClientRect().top - viewport.getBoundingClientRect().top - reading.offset : reading.scroll;
-  } else viewport.scrollTop = 0;
+  } else if (resetScroll) viewport.scrollTop = 0;
+  const scrolled = performance.now();
   if (!$('search-bar').hidden) search(false);
   if (anchor) scrollToHeading(anchor);
   updateProgress();
+  const progressed = performance.now();
   if (payload.warning) notify(payload.warning, true);
   const finished = performance.now();
   return {
     ipc_ms: 0, template_ms: templated - started,
     decoration_ms: decorated - templated, chunks_ms: chunked - decorated,
     attach_ms: attached - chunked, outline_ms: outlined - attached,
-    finish_ms: finished - outlined, total_ms: finished - started,
+    recents_ms: recented - outlined, scroll_ms: scrolled - recented,
+    progress_ms: progressed - scrolled, finish_ms: finished - outlined, total_ms: finished - started,
   } satisfies RenderTimings;
 }
 function open(path: string, anchor?: string | null) {

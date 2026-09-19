@@ -76,8 +76,11 @@ test('recent files open chunked documents and a newer click wins during loading'
   await page.locator('#recent button').filter({ hasText: 'huge.md' }).click();
   await expect(page.locator('#file-name')).toHaveText('huge.md');
   expect(await page.locator('#document .document-chunk').count()).toBeGreaterThan(1);
+  await page.locator('#document [data-heading-id="section-400"]').evaluate(element => element.scrollIntoView());
+  await expect.poll(() => page.locator('#viewport').evaluate(element => element.scrollTop)).toBeGreaterThan(0);
   await page.locator('#recent button').filter({ hasText: 'basic.md' }).click();
   await expect(page.locator('#file-name')).toHaveText('basic.md');
+  await expect.poll(() => page.locator('#viewport').evaluate(element => element.scrollTop)).toBe(0);
   await expect(page.locator('#document h1')).toHaveText('Marklight');
   await page.evaluate(() => { (window as any).testOpenDelay = 250; });
   await page.locator('#recent button').filter({ hasText: 'huge.md' }).click();
