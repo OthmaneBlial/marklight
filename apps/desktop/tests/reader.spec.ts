@@ -128,6 +128,40 @@ test('search spans styled text, counts, cycles and closes from keyboard', async 
   await expect(page.locator('#document mark')).toHaveCount(0);
 });
 
+test('large-document search can be replaced and reopened without stale highlights', async ({ page }) => {
+  await reader(page, 'huge', ['basic']);
+  await page.getByRole('button', { name: 'Search document' }).click();
+  const input = page.locator('#search-input');
+  await input.fill('Section');
+  await expect(page.locator('#match-count')).toHaveText('1 / 800');
+  await input.fill('Section 700');
+  await expect(page.locator('#match-count')).toHaveText('1 / 1');
+  await expect(page.locator('#document mark')).toHaveCount(1);
+  await page.getByRole('button', { name: 'Close search' }).click();
+  await expect(page.locator('#document mark')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Search document' }).click();
+  await expect(page.locator('#match-count')).toHaveText('1 / 1');
+  await page.locator('#recent button').filter({ hasText: 'basic.md' }).click();
+  await expect(page.locator('#file-name')).toHaveText('basic.md');
+  await expect(page.locator('#match-count')).toHaveText('0 matches');
+  await expect(page.locator('#document mark')).toHaveCount(0);
+});
+
+test('search reports additional matches only when the display cap is exceeded', async ({ page }) => {
+  test.setTimeout(60000);
+  await reader(page);
+  await page.evaluate(payload => {
+    const w = window as any;
+    w.testReload = { ...payload, html: `<p>${'needle '.repeat(10001)}</p>` };
+    w.testEmit('document-changed');
+  }, fixtures.gfm);
+  await expect(page.locator('#document p').first()).toContainText('needle needle');
+  await page.getByRole('button', { name: 'Search document' }).click();
+  await page.locator('#search-input').fill('needle');
+  await expect(page.locator('#match-count')).toHaveText('1 / 10000+', { timeout: 30000 });
+  await expect(page.locator('#document mark')).toHaveCount(10000);
+});
+
 test('font, theme, outline, zen and narrow layout stay usable', async ({ page }) => {
   await reader(page); await page.keyboard.press('Control+=');
   await expect(page.locator('#font-reset')).toHaveText('17px');

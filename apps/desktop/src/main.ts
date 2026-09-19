@@ -15,6 +15,10 @@ let config: Config = { theme: 'system', font_size: 16, toc: true, zen_mode: fals
 let current: Payload | null = null;
 let matches: HTMLElement[][] = [];
 let matchIndex = -1;
+let moreMatches = false;
+let searchGeneration = 0;
+let searchActions = Promise.resolve();
+let searchPending = false;
 let actions = Promise.resolve();
 let toastTimer: ReturnType<typeof setTimeout>;
 let reloadTimer: ReturnType<typeof setTimeout>;
@@ -244,7 +248,7 @@ async function render(payload: Payload, preserve = false, anchor?: string | null
     viewport.scrollTop = heading ? viewport.scrollTop + heading.getBoundingClientRect().top - viewport.getBoundingClientRect().top - reading.offset : reading.scroll;
   } else if (resetScroll) viewport.scrollTop = 0;
   const scrolled = performance.now();
-  if (!$('search-bar').hidden) search(false);
+  if (!$('search-bar').hidden) scheduleSearch($<HTMLInputElement>('search-input').value, false);
   if (anchor) scrollToHeading(anchor);
   updateProgress();
   const progressed = performance.now();
@@ -314,18 +318,59 @@ function updateProgress() {
   }
   $('reading-progress').textContent = current ? `${range > 0 ? Math.round(viewport.scrollTop / range * 100) : 100}%` : '—';
 }
-function openSearch() { $('search-bar').hidden = false; $<HTMLInputElement>('search-input').focus(); $<HTMLInputElement>('search-input').select(); }
-function closeSearch() { clearTimeout(searchTimer); $('search-bar').hidden = true; clearHighlights(article); matches = []; matchIndex = -1; viewport.focus(); }
-function search(scroll = true) {
-  matches = highlight(article, $<HTMLInputElement>('search-input').value); matchIndex = -1;
+function searchRoots() {
+  const chunks = Array.from(article.children).filter((child): child is HTMLElement => child instanceof HTMLElement && child.classList.contains('document-chunk'));
+  return chunks.length ? chunks : [article];
+}
+async function runSearch(generation: number, query: string, scroll: boolean) {
+  const roots = searchRoots();
+  for (const root of roots) {
+    if (generation !== searchGeneration) return;
+    clearHighlights(root);
+    await yieldToUi();
+  }
+  if (!query || generation !== searchGeneration) {
+    if (generation === searchGeneration) { searchPending = false; $('match-count').textContent = '0 matches'; }
+    return;
+  }
+  const found: HTMLElement[][] = [];
+  let hasMore = false;
+  for (const root of roots) {
+    if (generation !== searchGeneration) return;
+    const result = highlight(root, query, 10000 - found.length);
+    found.push(...result.matches);
+    if (result.hasMore) { hasMore = true; break; }
+    await yieldToUi();
+  }
+  if (generation !== searchGeneration) return;
+  matches = found; moreMatches = hasMore; matchIndex = -1; searchPending = false;
   moveMatch(1, scroll);
 }
+function scheduleSearch(query: string, scroll = true, delay = 0) {
+  clearTimeout(searchTimer);
+  const generation = ++searchGeneration;
+  matches = []; moreMatches = false; matchIndex = -1;
+  searchPending = Boolean(query);
+  $('match-count').textContent = query ? 'Searching…' : '0 matches';
+  const start = () => {
+    searchActions = searchActions.then(() => runSearch(generation, query, scroll))
+      .catch(error => notify(String(error), true));
+  };
+  if (delay) searchTimer = setTimeout(start, delay); else start();
+}
+function openSearch() {
+  $('search-bar').hidden = false;
+  const input = $<HTMLInputElement>('search-input'); input.focus(); input.select();
+  if (input.value) scheduleSearch(input.value, false);
+}
+function closeSearch() { $('search-bar').hidden = true; scheduleSearch('', false); viewport.focus(); }
 function moveMatch(direction: number, scroll = true) {
-  matches.flat().forEach(mark => mark.classList.remove('current-match'));
+  if (searchPending) return;
+  if (matchIndex >= 0) matches[matchIndex]?.forEach(mark => mark.classList.remove('current-match'));
   if (!matches.length) { $('match-count').textContent = '0 matches'; return; }
   matchIndex = (matchIndex + direction + matches.length) % matches.length;
   matches[matchIndex].forEach(mark => mark.classList.add('current-match'));
-  $('match-count').textContent = `${matchIndex + 1} / ${matches.length}${matches.length === 10000 ? '+' : ''}`;
+  $('match-count').textContent = `${matchIndex + 1} / ${matches.length}${moreMatches ? '+' : ''}`;
   if (scroll) matches[matchIndex][0]?.scrollIntoView({ block: 'center' });
 }
 function toggleToc() {
@@ -348,7 +393,7 @@ $('toggle-search').onclick = openSearch; $('close-search').onclick = closeSearch
 $('next-match').onclick = () => moveMatch(1); $('previous-match').onclick = () => moveMatch(-1);
 $('font-up').onclick = () => font(1); $('font-down').onclick = () => font(-1); $('font-reset').onclick = () => font(0);
 $<HTMLSelectElement>('theme').onchange = event => { config.theme = (event.target as HTMLSelectElement).value as Theme; savePreferences(); reload(); };
-$<HTMLInputElement>('search-input').oninput = () => { clearTimeout(searchTimer); searchTimer = setTimeout(() => search(), 100); };
+$<HTMLInputElement>('search-input').oninput = event => scheduleSearch((event.target as HTMLInputElement).value, true, 100);
 $('clear-recent').onclick = () => { enqueue(async () => { if (native) await invoke('clear_recent'); recents([]); }); };
 viewport.onscroll = updateProgress;
 systemDark.onchange = () => { if (config.theme === 'system') { applyPreferences(); reload(); } };
