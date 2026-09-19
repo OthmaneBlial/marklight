@@ -55,16 +55,20 @@ un fichier écrit. État au 19 septembre 2026 :
   [tests et essai WebKit natif](docs/VALIDATION.md#development-progress-after-v011-on-2026-09-19).
 - [x] **1.4** Dialecte Markdown borné dans [la matrice de rendu](docs/MARKDOWN.md) :
   alertes GFM étiquetées dans les deux lecteurs, extensions non prises en charge
-  laissées lisibles/inertes ; fixtures et contrôles Rust/Chromium passés. La
-  reconstruction native macOS passe, mais son rendu n'a pas été inspecté dans
-  cette vérification : voir [validation](docs/VALIDATION.md#development-progress-after-v011-on-2026-09-19).
+  laissées lisibles/inertes ; fixtures et contrôles Rust/Chromium passés,
+  [rendu WebKit macOS inspecté](docs/VALIDATION.md#development-progress-after-v011-on-2026-09-19).
 - [ ] **2.1** Frontière des documents non fiables : lecture d'image désormais
   confinée par descripteur de dossier après substitution de symlink ; audit
-  RustSec/npm et politique de réexamen ajoutés. Restent l'essai du protocole
-  image natif sur le build courant et la revue adversariale complète.
-- [ ] **2.2** Gestes natifs et accessibilité.
+  RustSec/npm et politique de réexamen ajoutés ; image locale et image distante
+  bloquée vérifiées en WebKit. Restent la revue adversariale complète et les
+  autres OS avant de cocher la tâche.
+- [ ] **2.2** Focus du lecteur et du mode Zen corrigé, état annoncé ;
+  sélecteur, recherche et navigation macOS exercés. Dépôt Finder et revue
+  VoiceOver/lecteur d'écran encore absents.
 - [ ] **2.3** Architecture et régressions.
-- [ ] **3.1** Première utilisation.
+- [ ] **3.1** Exemple local à deux pages empaqueté et ouvert depuis l'accueil
+  dans un build macOS ; fichier personnel ouvert par le sélecteur. Essai sur
+  installation propre du paquet distribué et retour novice encore absents.
 - [ ] **3.2** États visuels réels.
 - [ ] **4.1** Porte de qualité et décision CI.
 - [ ] **4.2** Plateformes installées et validées.

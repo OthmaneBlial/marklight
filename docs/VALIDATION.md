@@ -70,6 +70,29 @@ Linux package: revisit the upstream dependency path before Linux validation.
 The scanner's zero-vulnerability result is limited to known advisories at that
 database revision and does not replace the runtime security tests.
 
+At `e73f0bc`, `./scripts/check.sh` passed with 29 Rust tests and 19 Playwright
+scenarios. The frontend first-use test used Rust-rendered copies of the two
+sample Markdown files, including the local link and Back action, and checked a
+400 px welcome layout without horizontal overflow. The release-mode macOS
+arm64 app then built successfully. Its bundle contains
+`Contents/Resources/sample/sample.md` and `sample-guide.md`; each SHA-256
+matches its checked-in fixture byte for byte.
+
+The **local build** was then controlled in native WebKit. Clicking “Read the
+included example” opened the bundled file. Its local link opened the second
+page; Back restored the first page at 51% reading progress. Native search for
+`waypoint` reported `1 / 1`, and the result was visibly highlighted. The macOS
+Open dialog selected `basic.md` from the checkout and displayed its content.
+The same build opened `images.md`: the local raster appeared in the native
+accessibility tree while the remote image produced an unavailable note. A
+native screenshot was visually inspected. Opening `alerts.md` showed all five
+labelled GFM alerts in the accessibility tree; a WebKit screenshot showed
+distinct, readable colors and no horizontal overflow at 1120 px. The app was
+closed and the original TOML configuration restored byte-for-byte (SHA-256
+`ec7a10c431b36547ccbccd411304d28ef9b2ba4c9a42e5952ab8db0d5d3c1018`).
+These checks do not establish a clean install from the public download,
+Finder drag/drop, VoiceOver speech output, or runtime behavior on another OS.
+
 ## Recheck on 2026-09-19 for roadmap baseline
 
 At local HEAD `4e4fd53` (only `ROADMAP.md` after the 0.1.1 code tag),

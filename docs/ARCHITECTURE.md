@@ -19,7 +19,10 @@ workspace, with the CLI/core/render crates as default members.
 ## Native state
 
 Rust maintains the current document, one directory watcher, configuration and
-an image-token map under a mutex. Loading/rendering/dialog commands run on
+an image-token map under a mutex. Each opened document also owns a capability
+directory handle for its image root; image reads use that handle after token
+lookup, so replacing a path with a symlink cannot redirect a read outside the
+opened folder. Loading/rendering/dialog commands run on
 blocking workers. Failed loads preserve the current document. The frontend
 serializes document actions so rapid changes do not replace a newer read with
 an older one. File events are debounced; watching the directory handles atomic
@@ -32,6 +35,13 @@ to the current session's back/forward stack. Link/open/reload failures leave
 the last valid document visible and show a persistent alert with a retry
 action. A reload response is ignored when a newer open request has superseded
 it.
+
+`apps/desktop/src/main.ts` owns the document session, history, outline window,
+focus, preferences and native IPC calls. `search.ts` owns text-node matching and
+mark replacement. Neither parses Markdown. The first-use example consists of
+two checked-in files in `fixtures/markdown/`; Tauri bundles them as local
+resources and the welcome button resolves the bundled path before using the
+same open command as a user file.
 
 A reload returns newly rendered HTML. Before replacement, the frontend saves
 an active heading and its vertical offset. It restores that offset when the

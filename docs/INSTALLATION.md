@@ -60,6 +60,12 @@ packages existing builds. It uses `hdiutil` rather than automating Finder layout
 the default decorated Tauri DMG bundler failed on the validation host.
 No GitHub Actions are used.
 
+Development builds after 0.1.1 include **Read the included example** on the
+welcome screen. It opens two real Markdown files bundled in the app, offline;
+the sample demonstrates the outline, search, a local link and code copy. Use
+**Open file** for your own document. This example has been verified in a local
+macOS bundle, not in the published 0.1.1 download.
+
 For Linux/Windows source builds, use `npm run tauri -- build --features
 custom-protocol` from `apps/desktop`, with native Tauri prerequisites installed.
 These native packages and operating systems have not been tested here.
