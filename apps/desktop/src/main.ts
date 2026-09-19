@@ -49,6 +49,12 @@ const systemDark = matchMedia('(prefers-color-scheme: dark)');
 const mobile = matchMedia('(max-width: 750px)');
 const dark = () => config.theme === 'dark' || (config.theme === 'system' && systemDark.matches);
 
+function updateOutlineToggle() {
+  const visible = config.toc && (!mobile.matches || document.body.classList.contains('mobile-outline'));
+  $('toggle-toc').setAttribute('aria-pressed', String(visible));
+  $('toggle-toc').setAttribute('aria-expanded', String(visible));
+}
+
 function notify(message: string, error = false) {
   clearTimeout(toastTimer); const toast = $('toast');
   toast.textContent = message; toast.classList.toggle('error', error); toast.hidden = false;
@@ -78,7 +84,7 @@ function applyPreferences() {
   document.documentElement.style.setProperty('--font-size', `${config.font_size}px`);
   document.body.classList.toggle('toc-hidden', !config.toc);
   document.body.classList.toggle('zen', config.zen_mode);
-  $('toggle-toc').setAttribute('aria-pressed', String(config.toc));
+  updateOutlineToggle();
   $('toggle-zen').setAttribute('aria-pressed', String(config.zen_mode));
   $('leave-zen').hidden = !config.zen_mode;
   $<HTMLSelectElement>('theme').value = config.theme;
@@ -103,6 +109,7 @@ function scrollToHeading(id: string) {
   const heading = documentHeadings.get(id);
   if (heading) { heading.scrollIntoView({ block: 'start' }); heading.tabIndex = -1; heading.focus({ preventScroll: true }); }
   document.body.classList.remove('mobile-outline');
+  updateOutlineToggle();
 }
 function remember(stack: Visit[], visit: Visit) {
   stack.push(visit);
@@ -463,9 +470,9 @@ function moveMatch(direction: number, scroll = true) {
   $('match-count').textContent = `${matchIndex + 1} / ${matches.length}${moreMatches ? '+' : ''}`;
   if (scroll) matches[matchIndex][0]?.scrollIntoView({ block: 'center' });
 }
-function toggleToc() {
+function toggleToc(focusOutline = false) {
   if (mobile.matches) {
-    const keyboard = document.activeElement === $('toggle-toc');
+    const keyboard = focusOutline || document.activeElement === $('toggle-toc');
     const opened = document.body.classList.toggle('mobile-outline');
     config.toc = true; savePreferences();
     if (keyboard) {
@@ -495,7 +502,7 @@ $<HTMLInputElement>('outline-filter').oninput = event => {
 };
 $('outline-prev').onclick = () => { outlineStart = Math.max(0, outlineStart - outlinePageSize); paintOutline(); $('outline').scrollTop = 0; };
 $('outline-next').onclick = () => { outlineStart += outlinePageSize; paintOutline(); $('outline').scrollTop = 0; };
-$('toggle-toc').onclick = toggleToc; $('toggle-zen').onclick = toggleZen; $('leave-zen').onclick = toggleZen;
+$('toggle-toc').onclick = () => toggleToc(); $('toggle-zen').onclick = toggleZen; $('leave-zen').onclick = toggleZen;
 $('toggle-search').onclick = openSearch; $('close-search').onclick = closeSearch;
 $('next-match').onclick = () => moveMatch(1); $('previous-match').onclick = () => moveMatch(-1);
 $('font-up').onclick = () => font(1); $('font-down').onclick = () => font(-1); $('font-reset').onclick = () => font(0);
@@ -504,6 +511,7 @@ $<HTMLInputElement>('search-input').oninput = event => scheduleSearch((event.tar
 $('clear-recent').onclick = () => { enqueue(async () => { if (native) await invoke('clear_recent'); recents([]); }); };
 viewport.onscroll = updateProgress;
 systemDark.onchange = () => { if (config.theme === 'system') { applyPreferences(); reload(); } };
+mobile.addEventListener('change', updateOutlineToggle);
 function followLink(href: string) {
   enqueue(async () => {
     try {
@@ -529,13 +537,13 @@ document.addEventListener('keydown', event => {
   else if (event.altKey && !mod && event.key === 'ArrowRight') { event.preventDefault(); navigateHistory('forward'); }
   else if (mod && event.key.toLowerCase() === 'o') { event.preventDefault(); void chooseFile(); }
   else if (mod && event.key.toLowerCase() === 'f') { event.preventDefault(); openSearch(); }
-  else if (mod && event.shiftKey && event.key.toLowerCase() === 't') { event.preventDefault(); toggleToc(); }
+  else if (mod && event.shiftKey && event.key.toLowerCase() === 't') { event.preventDefault(); toggleToc(true); }
   else if (mod && event.shiftKey && event.key.toLowerCase() === 'z') { event.preventDefault(); toggleZen(); }
   else if (mod && ['+', '=', '-', '0'].includes(event.key)) { event.preventDefault(); font(event.key === '0' ? 0 : event.key === '-' ? -1 : 1); }
   else if (event.key === 'Escape') {
     if (!$('search-bar').hidden) closeSearch();
     else if (config.zen_mode) toggleZen();
-    else if (document.body.classList.contains('mobile-outline')) { document.body.classList.remove('mobile-outline'); $('toggle-toc').focus(); }
+    else if (document.body.classList.contains('mobile-outline')) { document.body.classList.remove('mobile-outline'); updateOutlineToggle(); $('toggle-toc').focus(); }
   }
   else if (event.key === 'Enter' && event.target === $('search-input')) { event.preventDefault(); moveMatch(event.shiftKey ? -1 : 1); }
 });
@@ -547,7 +555,7 @@ async function startup() {
   await listen('menu-open', () => { void chooseFile(); });
   await listen<string>('reader-action', event => {
     if (event.payload === 'find') openSearch();
-    else if (event.payload === 'outline') toggleToc();
+    else if (event.payload === 'outline') toggleToc(true);
     else if (event.payload === 'zen') toggleZen();
     else if (event.payload === 'larger') font(1);
     else if (event.payload === 'smaller') font(-1);

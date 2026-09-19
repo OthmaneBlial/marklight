@@ -121,12 +121,20 @@ test('the narrow outline moves focus to a heading and returns it on Escape', asy
   await reader(page, 'sample');
   await page.setViewportSize({ width: 400, height: 800 });
   const toggle = page.getByRole('button', { name: 'Toggle outline' });
+  await expect(toggle).toHaveAttribute('aria-pressed', 'false');
   await toggle.focus();
   await page.keyboard.press('Enter');
   await expect(page.locator('#sidebar')).toBeVisible();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
   await expect(page.locator('#outline a').first()).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(page.locator('#sidebar')).toBeHidden();
+  await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(toggle).toBeFocused();
+  await page.keyboard.press('Control+Shift+t');
+  await expect(page.locator('#outline a').first()).toBeFocused();
+  await page.keyboard.press('Escape');
   await expect(toggle).toBeFocused();
 });
 
@@ -236,6 +244,7 @@ test('font, theme, outline, zen and narrow layout stay usable', async ({ page })
   expect(await page.locator('#viewport').evaluate(el => el.scrollWidth === el.clientWidth)).toBe(true);
   await page.locator('#toggle-toc').click(); await expect(page.locator('#sidebar')).toBeVisible();
   await page.locator('#outline a').last().click(); await expect(page.locator('#sidebar')).toBeHidden();
+  await expect(page.locator('#toggle-toc')).toHaveAttribute('aria-expanded', 'false');
 });
 
 test('outline navigation and reload preserve the active heading context', async ({ page }) => {

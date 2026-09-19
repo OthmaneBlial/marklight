@@ -100,8 +100,16 @@ visible. This is a native visual check, not a full contrast or screen-reader
 audit. At `0de1bad`, a keyboard regression test verified that Enter opens the
 narrow outline, focus moves to its first link, and Escape returns focus to the
 toggle. The frontend build and all 20 Chromium scenarios passed. The native
-build predates this last keyboard-only change, so native keyboard focus after
-`0de1bad` remains to be rechecked on a rebuilt app.
+build predates that keyboard-only change; the rebuilt app check follows below.
+
+The next local macOS arm64 release-mode app was rebuilt after the narrow
+outline accessibility correction. At 400 px, WebKit reported the outline
+toggle as off. Opening the bundled sample and pressing Cmd+Shift+T reported
+the toggle as on, displayed its heading links, and focused the first link.
+Escape hid the outline, reported the toggle as off, and returned focus to it.
+The app process exited after Quit, and the pre-test configuration was restored
+with the same SHA-256. The TypeScript build and 20 Chromium scenarios passed;
+this checks actual WebKit focus and state but not VoiceOver speech output.
 
 The core/render test run after `0de1bad` passed 24 tests, including bounded
 traversal and hostile-markup mutations. `cargo fmt --check` passed after

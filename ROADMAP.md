@@ -63,9 +63,9 @@ un fichier écrit. État au 19 septembre 2026 :
   et du HTML testées ; image locale et image distante bloquée vérifiées en
   WebKit. Restent la revue sur le commit final et les autres OS annoncés.
 - [ ] **2.2** Focus du lecteur et du mode Zen corrigé, état annoncé ;
-  sélecteur, recherche et navigation macOS exercés ; sommaire étroit vérifié
-  au clavier dans Chromium. Dépôt Finder, essai natif du dernier focus et revue
-  VoiceOver/lecteur d'écran encore absents.
+  sélecteur, recherche et navigation macOS exercés ; sommaire étroit et état
+  accessible vérifiés au clavier dans Chromium et WebKit macOS. Dépôt Finder
+  et revue VoiceOver/lecteur d'écran encore absents.
 - [ ] **2.3** Architecture et régressions.
 - [ ] **3.1** Exemple local à deux pages empaqueté et ouvert depuis l'accueil
   dans un build macOS ; fichier personnel ouvert par le sélecteur. Essai sur
