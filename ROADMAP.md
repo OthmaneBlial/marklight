@@ -43,7 +43,10 @@ un fichier écrit. État au 19 septembre 2026 :
   réussis, [mesures brutes](docs/measurements-0.1.1-baseline.json) et
   [contrat de release](docs/RELEASE-CHECKLIST.md) publiés. Cela ne valide pas
   les téléchargements publics ou les autres OS.
-- [ ] **1.1** Gros documents et mesures end-to-end.
+- [ ] **1.1** Gros documents et mesures end-to-end : lookup des titres et
+  sommaire fenêtré implémentés ; [profil expérimental](docs/PERFORMANCE.md#phase-1-development-profile-on-2026-09-19)
+  enregistré. Cible 10 Mo, interactions, guide varié et mémoire complète encore
+  non validés.
 - [ ] **1.2** Recherche et sommaire à grande échelle.
 - [ ] **1.3** Historique, rechargement et erreurs.
 - [ ] **1.4** Dialecte Markdown choisi et testé.

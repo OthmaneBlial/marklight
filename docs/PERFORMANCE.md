@@ -37,6 +37,34 @@ within 500 ms, and visible response to search/outline input within 200 ms on
 results or guarantees on other hardware. Interaction and complete process-tree
 memory baselines still need instrumentation before those goals can be judged.
 
+## Phase 1 development profile on 2026-09-19
+
+The current development branch uses visible-chunk heading lookup and displays
+at most 100 outline links at a time, with filtering and pagination to reach
+every heading. The benchmark now rejects a native “ready” report if the
+frontend did not finish rendering. One run for each size and code state is in
+[the raw experimental samples](measurements-phase1-progress.json). These are
+**development experiments**, not release results; neither the source states
+nor the machine load were held constant across all runs.
+
+| Source state | 1 MB ready | 5 MB ready | 10 MB ready |
+|---|---:|---:|---:|
+| Visible-chunk lookup, full outline | 1,260 ms | 4,327 ms | 9,132 ms |
+| 100-link outline window | 1,231 ms | 4,154 ms | 8,482 ms |
+| Windowed outline, split timing profile | 1,978 ms | 7,053 ms | 16,168 ms |
+| Conditional scroll reset, first run | 2,544 ms | 8,666 ms | 14,331 ms |
+| Conditional scroll reset, repeat | 2,406 ms | 8,106 ms | 17,269 ms |
+
+The split profile attributes most of the late cost to forced WebView layout:
+assigning `scrollTop = 0` cost 8,012 ms for 10 MB in one run. Skipping that
+unnecessary assignment on initial open moved the cost to the subsequent
+`scrollHeight`/active-heading progress calculation (6,744 and 7,981 ms in two
+runs). This is a causal observation about **where the synchronous work occurs**,
+not evidence that total startup is faster. The 10 MB corpus contains about
+40,817 headings. System load was high during later runs, so the 8-second goal
+is **not verified**. First visible paint, varied real guides, search/scroll
+latency and full app-plus-WebKit memory still need measurement.
+
 Measured 2026-09-16 on Apple M2 / arm64, macOS 26.6, Rust stable 1.95, release
 build with thin LTO. Raw samples and host metadata are in
 [measurements.json](measurements.json). These are development-host measurements,

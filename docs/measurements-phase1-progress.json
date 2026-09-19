@@ -1,0 +1,289 @@
+{
+  "date": "2026-09-19",
+  "host": "Apple M2 arm64, macOS 26.6",
+  "method": "Fresh native LaunchServices app launch per synthetic corpus size using scripts/benchmark.py --large; one sample per size per run. No concurrent compilation; background machine load varied. Ready signal requires non-null frontend render timings. Values are milliseconds. Not first visible paint.",
+  "runs": [
+    {
+      "name": "full-outline",
+      "code": "visible-chunk heading lookup; full outline",
+      "samples": [
+        {
+          "document_bytes": 1000000,
+          "ready_ms": 1259.8720409999999,
+          "observed_wall_ms": 1367.309540975839,
+          "frontend": {
+            "attach_ms": 11.0,
+            "chunks_ms": 60.0,
+            "decoration_ms": 24.0,
+            "finish_ms": 306.0,
+            "ipc_ms": 259.0,
+            "outline_ms": 25.0,
+            "template_ms": 72.0,
+            "total_ms": 498.0
+          }
+        },
+        {
+          "document_bytes": 5000000,
+          "ready_ms": 4327.051458,
+          "observed_wall_ms": 4437.136624997947,
+          "frontend": {
+            "attach_ms": 60.0,
+            "chunks_ms": 296.0,
+            "decoration_ms": 116.0,
+            "finish_ms": 1715.0,
+            "ipc_ms": 1161.0,
+            "outline_ms": 62.0,
+            "template_ms": 378.0,
+            "total_ms": 2627.0
+          }
+        },
+        {
+          "document_bytes": 10000000,
+          "ready_ms": 9132.181750000002,
+          "observed_wall_ms": 9236.163416993804,
+          "frontend": {
+            "attach_ms": 123.0,
+            "chunks_ms": 611.0000000000005,
+            "decoration_ms": 234.0,
+            "finish_ms": 4509.0,
+            "ipc_ms": 2208.0,
+            "outline_ms": 110.99999999999956,
+            "template_ms": 766.0,
+            "total_ms": 6354.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "windowed-outline",
+      "code": "visible-chunk lookup; 100-link outline window",
+      "samples": [
+        {
+          "document_bytes": 1000000,
+          "ready_ms": 1231.189792,
+          "observed_wall_ms": 1339.1621250193566,
+          "frontend": {
+            "attach_ms": 11.0,
+            "chunks_ms": 59.0,
+            "decoration_ms": 24.0,
+            "finish_ms": 294.9999999999999,
+            "ipc_ms": 258.0,
+            "outline_ms": 19.000000000000114,
+            "template_ms": 73.0,
+            "total_ms": 481.0
+          }
+        },
+        {
+          "document_bytes": 5000000,
+          "ready_ms": 4153.500459,
+          "observed_wall_ms": 4262.41291599581,
+          "frontend": {
+            "attach_ms": 57.99999999999977,
+            "chunks_ms": 293.0000000000002,
+            "decoration_ms": 117.0,
+            "finish_ms": 1652.0000000000005,
+            "ipc_ms": 1114.0,
+            "outline_ms": 23.0,
+            "template_ms": 376.0,
+            "total_ms": 2519.0000000000005
+          }
+        },
+        {
+          "document_bytes": 10000000,
+          "ready_ms": 8481.910584,
+          "observed_wall_ms": 8583.020457997918,
+          "frontend": {
+            "attach_ms": 119.0,
+            "chunks_ms": 595.0,
+            "decoration_ms": 230.0,
+            "finish_ms": 4012.0,
+            "ipc_ms": 2236.0,
+            "outline_ms": 29.0,
+            "template_ms": 754.0,
+            "total_ms": 5739.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "split-profile",
+      "code": "windowed outline; split layout timings; unconditional scroll reset",
+      "samples": [
+        {
+          "document_bytes": 1000000,
+          "ready_ms": 1978.012583,
+          "observed_wall_ms": 2080.965625005774,
+          "frontend": {
+            "attach_ms": 15.0,
+            "chunks_ms": 84.0,
+            "decoration_ms": 31.0,
+            "finish_ms": 407.0,
+            "ipc_ms": 421.0,
+            "outline_ms": 25.0,
+            "progress_ms": 8.0,
+            "recents_ms": 0.0,
+            "scroll_ms": 399.0,
+            "template_ms": 123.0,
+            "total_ms": 685.0
+          }
+        },
+        {
+          "document_bytes": 5000000,
+          "ready_ms": 7052.981167000001,
+          "observed_wall_ms": 7186.531207989901,
+          "frontend": {
+            "attach_ms": 94.0,
+            "chunks_ms": 469.0,
+            "decoration_ms": 140.0,
+            "finish_ms": 2916.0,
+            "ipc_ms": 1978.0,
+            "outline_ms": 36.0,
+            "progress_ms": 45.0,
+            "recents_ms": 0.0,
+            "scroll_ms": 2871.0,
+            "template_ms": 503.0,
+            "total_ms": 4158.0
+          }
+        },
+        {
+          "document_bytes": 10000000,
+          "ready_ms": 16167.651916,
+          "observed_wall_ms": 16308.328834013082,
+          "frontend": {
+            "attach_ms": 259.0,
+            "chunks_ms": 1680.0,
+            "decoration_ms": 487.0,
+            "finish_ms": 8182.0,
+            "ipc_ms": 3200.0,
+            "outline_ms": 57.0,
+            "progress_ms": 170.0,
+            "recents_ms": 0.0,
+            "scroll_ms": 8012.0,
+            "template_ms": 1390.9999999999995,
+            "total_ms": 12056.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "conditional-reset-1",
+      "code": "windowed outline; split layout timings; conditional scroll reset",
+      "samples": [
+        {
+          "document_bytes": 1000000,
+          "ready_ms": 2544.248708,
+          "observed_wall_ms": 2983.1355410278775,
+          "frontend": {
+            "attach_ms": 25.0,
+            "chunks_ms": 184.0,
+            "decoration_ms": 52.999999999999886,
+            "finish_ms": 652.0000000000002,
+            "ipc_ms": 527.0,
+            "outline_ms": 29.0,
+            "progress_ms": 651.0000000000002,
+            "recents_ms": 1.0,
+            "scroll_ms": 0.0,
+            "template_ms": 144.0000000000001,
+            "total_ms": 1087.0000000000002
+          }
+        },
+        {
+          "document_bytes": 5000000,
+          "ready_ms": 8666.007125,
+          "observed_wall_ms": 8946.457624959294,
+          "frontend": {
+            "attach_ms": 128.0,
+            "chunks_ms": 794.0,
+            "decoration_ms": 246.0,
+            "finish_ms": 3275.0,
+            "ipc_ms": 2509.0,
+            "outline_ms": 41.0,
+            "progress_ms": 3275.0,
+            "recents_ms": 0.0,
+            "scroll_ms": 0.0,
+            "template_ms": 697.9999999999995,
+            "total_ms": 5182.0
+          }
+        },
+        {
+          "document_bytes": 10000000,
+          "ready_ms": 14331.425833000001,
+          "observed_wall_ms": 14466.310124960728,
+          "frontend": {
+            "attach_ms": 173.0,
+            "chunks_ms": 1042.0,
+            "decoration_ms": 329.0,
+            "finish_ms": 6744.0,
+            "ipc_ms": 3759.0,
+            "outline_ms": 46.0,
+            "progress_ms": 6744.0,
+            "recents_ms": 0.0,
+            "scroll_ms": 0.0,
+            "template_ms": 1259.9999999999995,
+            "total_ms": 9594.0
+          }
+        }
+      ]
+    },
+    {
+      "name": "conditional-reset-2",
+      "code": "same code as conditional-reset-1",
+      "samples": [
+        {
+          "document_bytes": 1000000,
+          "ready_ms": 2405.722583,
+          "observed_wall_ms": 2551.7905420274474,
+          "frontend": {
+            "attach_ms": 22.0,
+            "chunks_ms": 189.0,
+            "decoration_ms": 50.0,
+            "finish_ms": 634.0,
+            "ipc_ms": 430.0,
+            "outline_ms": 30.0,
+            "progress_ms": 634.0,
+            "recents_ms": 0.0,
+            "scroll_ms": 0.0,
+            "template_ms": 133.0,
+            "total_ms": 1058.0
+          }
+        },
+        {
+          "document_bytes": 5000000,
+          "ready_ms": 8105.730208000001,
+          "observed_wall_ms": 8301.159958995413,
+          "frontend": {
+            "attach_ms": 132.0,
+            "chunks_ms": 803.0,
+            "decoration_ms": 253.0,
+            "finish_ms": 3472.0,
+            "ipc_ms": 1771.0,
+            "outline_ms": 51.0,
+            "progress_ms": 3471.0,
+            "recents_ms": 1.0,
+            "scroll_ms": 0.0,
+            "template_ms": 726.0,
+            "total_ms": 5437.0
+          }
+        },
+        {
+          "document_bytes": 10000000,
+          "ready_ms": 17268.901625000002,
+          "observed_wall_ms": 17425.971375021618,
+          "frontend": {
+            "attach_ms": 257.0,
+            "chunks_ms": 1902.0,
+            "decoration_ms": 480.0,
+            "finish_ms": 7981.000000000004,
+            "ipc_ms": 4181.0,
+            "outline_ms": 56.0,
+            "progress_ms": 7981.000000000004,
+            "recents_ms": 0.0,
+            "scroll_ms": 0.0,
+            "template_ms": 1428.0,
+            "total_ms": 12104.000000000004
+          }
+        }
+      ]
+    }
+  ]
+}
