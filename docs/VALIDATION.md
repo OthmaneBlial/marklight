@@ -37,6 +37,17 @@ files were removed and the pre-test TOML configuration was restored with a
 matching SHA-256. These local checks do not validate another OS or a public
 download.
 
+At `8a7afcb`, `./scripts/check.sh` passed with 27 Rust tests and 17 Playwright
+tests. Strict Clippy with all features also passed. The new Markdown fixtures
+exercise all five GFM alert kinds, a safe relative link, hostile raw HTML and
+URL syntax, and deliberately unsupported footnotes, wiki links, math, YAML
+front matter and Mermaid. The terminal and HTML render tests passed; a Chromium
+capture of the callouts was visually inspected at 1120 px. A release-mode
+macOS arm64 app bundle rebuilt successfully. The native UI control tool could
+not acquire its window (`cgWindowNotFound`), so this build does **not** add a
+native visual assertion for the callouts. Its process was closed and the
+pre-test TOML configuration was restored with a matching SHA-256.
+
 ## Recheck on 2026-09-19 for roadmap baseline
 
 At local HEAD `4e4fd53` (only `ROADMAP.md` after the 0.1.1 code tag),

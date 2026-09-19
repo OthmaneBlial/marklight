@@ -53,7 +53,11 @@ un fichier écrit. État au 19 septembre 2026 :
 - [x] **1.3** Historique, rechargement et erreurs : retour/avance avec position
   restaurée, alerte persistante et reprise, réponse obsolète écartée ;
   [tests et essai WebKit natif](docs/VALIDATION.md#development-progress-after-v011-on-2026-09-19).
-- [ ] **1.4** Dialecte Markdown choisi et testé.
+- [x] **1.4** Dialecte Markdown borné dans [la matrice de rendu](docs/MARKDOWN.md) :
+  alertes GFM étiquetées dans les deux lecteurs, extensions non prises en charge
+  laissées lisibles/inertes ; fixtures et contrôles Rust/Chromium passés. La
+  reconstruction native macOS passe, mais son rendu n'a pas été inspecté dans
+  cette vérification : voir [validation](docs/VALIDATION.md#development-progress-after-v011-on-2026-09-19).
 - [ ] **2.1** Frontière des documents non fiables.
 - [ ] **2.2** Gestes natifs et accessibilité.
 - [ ] **2.3** Architecture et régressions.
