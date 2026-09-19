@@ -144,6 +144,7 @@ test('font, theme, outline, zen and narrow layout stay usable', async ({ page })
 
 test('outline navigation and reload preserve the active heading context', async ({ page }) => {
   await reader(page,'huge');
+  await page.getByRole('searchbox', { name: 'Find a heading' }).fill('Section 400');
   await page.locator('#outline a[data-heading="section-400"]').click();
   const heading = page.locator('#document [data-heading-id="section-400"]');
   const before = await heading.evaluate(el => el.getBoundingClientRect().top - document.getElementById('viewport')!.getBoundingClientRect().top);
@@ -161,6 +162,12 @@ test('outline navigation and reload preserve the active heading context', async 
 
 test('scroll progress does not measure headings in offscreen chunks', async ({ page }) => {
   await reader(page, 'huge');
+  await expect(page.locator('#outline a')).toHaveCount(100);
+  await expect(page.locator('#outline-range')).toHaveText('1–100 of 801');
+  await page.getByRole('button', { name: 'Next headings' }).click();
+  await expect(page.locator('#outline-range')).toHaveText('101–200 of 801');
+  await page.getByRole('searchbox', { name: 'Find a heading' }).fill('Section 700');
+  await expect(page.locator('#outline a[data-heading="section-700"]')).toBeVisible();
   const measuredFarHeadings = await page.evaluate(() => {
     const headings = Array.from(document.querySelectorAll('#document [data-heading-id]'));
     const far = new Set(headings.slice(200));

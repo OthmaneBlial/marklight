@@ -3,7 +3,7 @@ import { convertFileSrc, invoke, isTauri } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { clearHighlights, highlight } from './search';
-import type { Config, Navigation, Payload, Theme } from './types';
+import type { Config, Heading, Navigation, Payload, Theme } from './types';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const viewport = $('viewport');
@@ -28,6 +28,12 @@ type ChunkHeadings = { headings: HTMLElement[]; previous: HTMLElement | undefine
 let chunkHeadings = new WeakMap<HTMLElement, ChunkHeadings>();
 let activeOutline: HTMLAnchorElement | null = null;
 const outlineLinks = new Map<string, HTMLAnchorElement>();
+const outlineIndexes = new Map<string, number>();
+let outlineHeadings: Heading[] = [];
+let outlineStart = 0;
+let outlineQuery = '';
+let activeHeadingId: string | undefined;
+const outlinePageSize = 100;
 const systemDark = matchMedia('(prefers-color-scheme: dark)');
 const mobile = matchMedia('(max-width: 750px)');
 const dark = () => config.theme === 'dark' || (config.theme === 'system' && systemDark.matches);
@@ -75,6 +81,38 @@ function scrollToHeading(id: string) {
   const heading = documentHeadings.get(id);
   if (heading) { heading.scrollIntoView({ block: 'start' }); heading.tabIndex = -1; heading.focus({ preventScroll: true }); }
   document.body.classList.remove('mobile-outline');
+}
+function paintOutline() {
+  const outline = $('outline'); outline.replaceChildren(); outlineLinks.clear(); activeOutline = null;
+  const large = outlineHeadings.length > 400;
+  $('outline-tools').hidden = !large;
+  const matching = outlineQuery
+    ? outlineHeadings.filter(heading => heading.text.toLocaleLowerCase().includes(outlineQuery))
+    : outlineHeadings;
+  const page = large ? matching.slice(outlineStart, outlineStart + outlinePageSize) : matching;
+  const fragment = document.createDocumentFragment();
+  for (const heading of page) {
+    const link = document.createElement('a'); link.href = `#${heading.id}`; link.textContent = heading.text;
+    link.dataset.heading = heading.id; link.style.paddingLeft = `${10 + (heading.level - 1) * 10}px`;
+    link.onclick = event => { event.preventDefault(); scrollToHeading(heading.id); };
+    if (heading.id === activeHeadingId) {
+      link.classList.add('active'); link.setAttribute('aria-current', 'location'); activeOutline = link;
+    }
+    fragment.append(link); outlineLinks.set(heading.id, link);
+  }
+  if (!page.length) {
+    const empty = document.createElement('p'); empty.className = 'muted';
+    empty.textContent = outlineHeadings.length ? 'No matching headings.' : 'No headings in this document.';
+    fragment.append(empty);
+  }
+  outline.append(fragment);
+  if (large) {
+    $('outline-range').textContent = matching.length
+      ? `${outlineStart + 1}–${outlineStart + page.length} of ${matching.length.toLocaleString()}`
+      : '0 headings';
+    $<HTMLButtonElement>('outline-prev').disabled = outlineStart === 0;
+    $<HTMLButtonElement>('outline-next').disabled = outlineStart + outlinePageSize >= matching.length;
+  }
 }
 function headingAt(top: number) {
   if (headingElements.length > 400) {
@@ -192,18 +230,12 @@ async function render(payload: Payload, preserve = false, anchor?: string | null
   $('file-name').textContent = payload.name; $('file-name').title = payload.path;
   document.title = `${payload.name} — Marklight`;
   $('status').textContent = `${payload.metadata.words.toLocaleString()} WORDS · ${payload.metadata.reading_minutes} MIN READ · LIVE RELOAD`;
-  const outline = $('outline'); outline.replaceChildren();
-  outlineLinks.clear(); activeOutline = null;
-  const outlineContent = document.createDocumentFragment();
-  for (const heading of payload.headings) {
-    const link = document.createElement('a'); link.href = `#${heading.id}`; link.textContent = heading.text;
-    link.dataset.heading = heading.id; link.style.paddingLeft = `${10 + (heading.level - 1) * 10}px`;
-    link.onclick = event => { event.preventDefault(); scrollToHeading(heading.id); }; outlineContent.append(link);
-    outlineLinks.set(heading.id, link);
-  }
-  outline.append(outlineContent);
+  outlineHeadings = payload.headings;
+  outlineIndexes.clear(); payload.headings.forEach((heading, index) => outlineIndexes.set(heading.id, index));
+  outlineQuery = ''; outlineStart = 0; activeHeadingId = undefined;
+  $<HTMLInputElement>('outline-filter').value = '';
+  paintOutline();
   const outlined = performance.now();
-  if (!payload.headings.length) { const empty = document.createElement('p'); empty.className = 'muted'; empty.textContent = 'No headings in this document.'; outline.append(empty); }
   recents(payload.recent);
   if (reading) {
     const heading = reading.id && documentHeadings.get(reading.id);
@@ -261,6 +293,15 @@ function updateProgress() {
   const range = viewport.scrollHeight - viewport.clientHeight;
   const top = viewport.getBoundingClientRect().top;
   const active = headingAt(top + 90)?.dataset.headingId ?? current?.headings[0]?.id;
+  const previousActive = activeHeadingId;
+  activeHeadingId = active;
+  if (!outlineQuery && outlineHeadings.length > 400 && active && active !== previousActive) {
+    const index = outlineIndexes.get(active);
+    if (index !== undefined && (index < outlineStart || index >= outlineStart + outlinePageSize)) {
+      outlineStart = Math.floor(index / outlinePageSize) * outlinePageSize;
+      paintOutline();
+    }
+  }
   const next = active ? outlineLinks.get(active) ?? null : null;
   if (next !== activeOutline) {
     activeOutline?.classList.remove('active'); activeOutline?.removeAttribute('aria-current');
@@ -289,6 +330,14 @@ function toggleToc() {
 function toggleZen() { config.zen_mode = !config.zen_mode; savePreferences(); }
 function font(delta: number) { config.font_size = delta === 0 ? 16 : Math.max(12, Math.min(28, config.font_size + delta)); savePreferences(); }
 $('open').onclick = chooseFile; $('welcome-open').onclick = chooseFile;
+$<HTMLInputElement>('outline-filter').oninput = event => {
+  outlineQuery = (event.target as HTMLInputElement).value.trim().toLocaleLowerCase();
+  const activeIndex = activeHeadingId ? outlineIndexes.get(activeHeadingId) : undefined;
+  outlineStart = outlineQuery || activeIndex === undefined ? 0 : Math.floor(activeIndex / outlinePageSize) * outlinePageSize;
+  paintOutline(); $('outline').scrollTop = 0;
+};
+$('outline-prev').onclick = () => { outlineStart = Math.max(0, outlineStart - outlinePageSize); paintOutline(); $('outline').scrollTop = 0; };
+$('outline-next').onclick = () => { outlineStart += outlinePageSize; paintOutline(); $('outline').scrollTop = 0; };
 $('toggle-toc').onclick = toggleToc; $('toggle-zen').onclick = toggleZen; $('leave-zen').onclick = toggleZen;
 $('toggle-search').onclick = openSearch; $('close-search').onclick = closeSearch;
 $('next-match').onclick = () => moveMatch(1); $('previous-match').onclick = () => moveMatch(-1);
