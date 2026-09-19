@@ -46,6 +46,10 @@ temporary Rust test deliberately failed; the same script exited 101 at that
 test. The probe was removed and `git status` returned clean. Local logs are in
 ignored `artifacts/phase4-clean-gate.log` and `phase4-negative-gate.log`.
 The policy remains **manual gates, no GitHub Actions**; this is not CI.
+The Playwright screenshot scenario now writes its fresh captures under ignored
+`artifacts/browser-tests/screenshots/`; a full 20-scenario rerun left the
+tracked `docs/images/` PNGs untouched. Those tracked images remain earlier
+browser-adapter captures and are not new native screenshots.
 
 The macOS arm64 release-mode CLI and app were then rebuilt from the current
 development code. `scripts/package.sh` sent ZIP, DMG, CLI archive and

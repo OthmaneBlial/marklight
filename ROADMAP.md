@@ -80,8 +80,9 @@ un fichier écrit. État au 19 septembre 2026 :
   inspectés dans WebKit macOS ; autres états et captures finales à vérifier.
 - [ ] **4.1** Porte manuelle étendue (versions, Clippy toutes features,
   Playwright et site) passée sur `2960518` propre ; un test Rust cassé est
-  rejeté. Politique sans Actions conservée. Relancer sur le futur commit de
-  release et joindre son rapport avant de cocher.
+  rejeté. Les captures du test vont désormais dans `artifacts/` ignoré et ne
+  modifient plus les PNG suivis par Git. Politique sans Actions conservée.
+  Relancer sur le futur commit de release et joindre son rapport avant de cocher.
 - [ ] **4.2** Plateformes installées et validées.
 - [ ] **4.3** Confiance macOS et registres.
 - [ ] **4.4** ZIP/DMG/CLI/npm locaux construits en dossiers séparés et soumis

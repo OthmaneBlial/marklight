@@ -409,13 +409,13 @@ test('hostile fixture cannot inject executable HTML or remote image requests', a
 });
 
 test('capture actual reader UI at desktop/light, desktop/dark and narrow sizes', async ({ page }) => {
-  await reader(page); mkdirSync(new URL('../../../docs/images',import.meta.url),{ recursive:true });
+  await reader(page); mkdirSync(new URL('../../../artifacts/browser-tests/screenshots',import.meta.url),{ recursive:true });
   await page.setViewportSize({ width: 1120, height: 850 });
   await page.selectOption('#theme','light');
-  await page.screenshot({ path: '../../docs/images/reader-light.png' });
+  await page.screenshot({ path: '../../artifacts/browser-tests/screenshots/reader-light.png' });
   await page.selectOption('#theme','dark');
   await expect(page.locator('#document pre span').first()).toHaveAttribute('style', /color:#b48ead/);
-  await page.screenshot({ path: '../../docs/images/reader-dark.png' });
+  await page.screenshot({ path: '../../artifacts/browser-tests/screenshots/reader-dark.png' });
   await page.setViewportSize({ width: 400, height: 760 });
-  await page.screenshot({ path: '../../docs/images/reader-narrow.png' });
+  await page.screenshot({ path: '../../artifacts/browser-tests/screenshots/reader-narrow.png' });
 });
