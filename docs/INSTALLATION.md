@@ -114,6 +114,7 @@ The native View menu also provides search, outline, zen and font controls.
 | Action | macOS | Windows/Linux |
 |---|---|---|
 | Open | Cmd+O | Ctrl+O |
+| Back / forward in this reading session | Option+Left / Option+Right | Alt+Left / Alt+Right |
 | Find | Cmd+F | Ctrl+F |
 | Larger / smaller text | Cmd++ / Cmd+- | Ctrl++ / Ctrl+- |
 | Reset text size | Cmd+0 | Ctrl+0 |
@@ -135,7 +136,11 @@ most twelve recent local file paths. The default theme is System.
 - Windows: `%APPDATA%\Marklight\Marklight\config\config.toml`
 
 These paths use the `directories` crate's platform conventions. Use Clear
-Recent in the sidebar to forget history. No database, account or network sync.
+Recent in the sidebar to forget the saved file paths. Back/forward keeps up to
+50 file-and-scroll positions only for the current app session; it is not stored
+in the TOML file. If a linked file or reload fails, the current text remains
+visible and a persistent alert offers Retry. No database, account or network
+sync.
 
 ```toml
 theme = "system"

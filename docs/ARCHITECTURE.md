@@ -25,6 +25,14 @@ serializes document actions so rapid changes do not replace a newer read with
 an older one. File events are debounced; watching the directory handles atomic
 editor saves. Read/access events do not trigger a reload loop.
 
+The frontend keeps a separate, in-memory back/forward stack of at most 50
+file, heading and scroll positions. Successful navigation records a visit;
+failed opens do not. Persisted recents contain paths only and are unrelated
+to the current session's back/forward stack. Link/open/reload failures leave
+the last valid document visible and show a persistent alert with a retry
+action. A reload response is ignored when a newer open request has superseded
+it.
+
 A reload returns newly rendered HTML. Before replacement, the frontend saves
 an active heading and its vertical offset. It restores that offset when the
 same heading exists, and falls back to the previous scroll offset otherwise.

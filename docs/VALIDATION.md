@@ -18,6 +18,25 @@ was visually inspected. The app was closed and the prior outline preference
 restored. This does not validate search response time at 1/10 MB, a screen
 reader, the public 0.1.1 download, or a new release.
 
+At commit `d76bb29`, `./scripts/check.sh` passed again: 21 Rust tests and 16
+Playwright tests, including session back/forward with restored heading offset,
+failed open/reload with Retry, a delayed stale reload, and a relative link that
+becomes available later. The new link fixture is Rust rendered; the failure
+timing in Playwright is mocked at the Tauri IPC boundary.
+
+The release-mode local macOS arm64 build was then exercised in actual WebKit.
+From a temporary Markdown file, a link to an absent sibling produced a
+persistent alert while the first page remained readable. Creating the sibling
+and clicking Retry opened it; Back returned to the first page. Renaming the
+first file away produced a reload alert while its old text remained visible;
+restoring the file triggered a successful reload and cleared the alert. A
+separate native pass opened checked-in `huge.md`, jumped to Section 400 (48%
+progress), opened `basic.md`, and used Back to restore Section 400 at the same
+visible offset and 48% progress. Both test app instances were closed. Temporary
+files were removed and the pre-test TOML configuration was restored with a
+matching SHA-256. These local checks do not validate another OS or a public
+download.
+
 ## Recheck on 2026-09-19 for roadmap baseline
 
 At local HEAD `4e4fd53` (only `ROADMAP.md` after the 0.1.1 code tag),

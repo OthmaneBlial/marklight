@@ -50,7 +50,9 @@ un fichier écrit. État au 19 septembre 2026 :
 - [ ] **1.2** Recherche par morceaux avec annulation, plafond exact et sommaire
   filtrable implémentés ; tests Chromium et essai natif à 100 Ko passés.
   Réactivité native mesurée à 1/10 Mo et audit lecteur d'écran encore absents.
-- [ ] **1.3** Historique, rechargement et erreurs.
+- [x] **1.3** Historique, rechargement et erreurs : retour/avance avec position
+  restaurée, alerte persistante et reprise, réponse obsolète écartée ;
+  [tests et essai WebKit natif](docs/VALIDATION.md#development-progress-after-v011-on-2026-09-19).
 - [ ] **1.4** Dialecte Markdown choisi et testé.
 - [ ] **2.1** Frontière des documents non fiables.
 - [ ] **2.2** Gestes natifs et accessibilité.
