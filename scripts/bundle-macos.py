@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Bundle already-built local macOS artifacts; no signing, upload or CI."""
+import argparse
 import hashlib
 import json
 import platform
@@ -10,6 +11,9 @@ import tempfile
 from pathlib import Path
 
 root = Path(__file__).resolve().parent.parent
+parser = argparse.ArgumentParser()
+parser.add_argument('--output-dir', type=Path, default=root/'artifacts/release')
+args = parser.parse_args()
 if platform.system() != 'Darwin':
     raise SystemExit('This packaging script requires macOS.')
 version = json.loads((root/'apps/desktop/src-tauri/tauri.conf.json').read_text())['version']
@@ -23,7 +27,7 @@ subprocess.run([str(cli), '--version'], check=True)
 # Developer ID credential and does not notarize or satisfy Gatekeeper trust.
 subprocess.run(['codesign', '--force', '--deep', '--sign', '-', str(app)], check=True)
 subprocess.run(['codesign', '--verify', '--deep', '--strict', str(app)], check=True)
-output = root/'artifacts/release'
+output = args.output_dir.resolve()
 output.mkdir(parents=True, exist_ok=True)
 prefix = f'Marklight-{version}-macOS-{machine}'
 zip_path = output/f'{prefix}.app.zip'

@@ -10,6 +10,8 @@ mkdir -p packages/npm/bin artifacts/npm
 cp target/release/marklight packages/npm/bin/marklight
 cp LICENSE packages/npm/LICENSE
 chmod 755 packages/npm/bin/marklight
-task_artifacts="$PWD/artifacts/npm"
+task_artifacts="${MARKLIGHT_NPM_OUTPUT:-$PWD/artifacts/npm}"
+mkdir -p "$task_artifacts"
+task_artifacts="$(cd "$task_artifacts" && pwd)"
 cd packages/npm
 npm pack --pack-destination "$task_artifacts"
