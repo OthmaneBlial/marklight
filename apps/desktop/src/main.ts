@@ -476,17 +476,23 @@ $<HTMLInputElement>('search-input').oninput = event => scheduleSearch((event.tar
 $('clear-recent').onclick = () => { enqueue(async () => { if (native) await invoke('clear_recent'); recents([]); }); };
 viewport.onscroll = updateProgress;
 systemDark.onchange = () => { if (config.theme === 'system') { applyPreferences(); reload(); } };
+function followLink(href: string) {
+  enqueue(async () => {
+    try {
+      const navigation = await invoke<Navigation>('follow_link', { href });
+      if (navigation.kind === 'anchor') { jumpToHeading(navigation.id); clearReaderError(); }
+      if (navigation.kind === 'markdown') open(navigation.path, navigation.anchor);
+      if (navigation.kind === 'external') clearReaderError();
+    } catch (error) {
+      showReaderError(`Could not follow this link. ${String(error)}`, () => followLink(href));
+    }
+  });
+}
 article.onclick = event => {
   const link = (event.target as Element).closest('a'); if (!link) return;
   event.preventDefault(); const href = link.getAttribute('href'); if (!href) return;
   if (viewport.getAttribute('aria-busy') === 'true') return;
-  enqueue(async () => {
-    try {
-      const navigation = await invoke<Navigation>('follow_link', { href });
-      if (navigation.kind === 'anchor') jumpToHeading(navigation.id);
-      if (navigation.kind === 'markdown') open(navigation.path, navigation.anchor);
-    } catch (error) { showReaderError(`Could not follow this link. ${String(error)}`); }
-  });
+  followLink(href);
 };
 document.querySelector('.wordmark')!.addEventListener('click', event => { event.preventDefault(); viewport.scrollTop = 0; });
 document.addEventListener('keydown', event => {

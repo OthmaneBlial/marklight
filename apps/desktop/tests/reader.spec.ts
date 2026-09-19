@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { readFileSync, mkdirSync } from 'node:fs';
-const fixtures = Object.fromEntries(['gfm','basic','links','huge','malicious-html','unicode','tables','code','ui-collisions'].map(name => [name, JSON.parse(readFileSync(new URL(`../../../artifacts/frontend-fixtures/${name}.json`, import.meta.url), 'utf8'))]));
+const fixtures = Object.fromEntries(['gfm','basic','links','broken-link','huge','malicious-html','unicode','tables','code','ui-collisions'].map(name => [name, JSON.parse(readFileSync(new URL(`../../../artifacts/frontend-fixtures/${name}.json`, import.meta.url), 'utf8'))]));
 async function reader(page: Page, initial = 'gfm', recentNames: string[] = []) {
   await page.addInitScript(({ fixtures, initial, recentNames }) => {
     const w = window as any;
@@ -15,6 +15,7 @@ async function reader(page: Page, initial = 'gfm', recentNames: string[] = []) {
     w.testFailOpenPath = null;
     w.testReloadError = false;
     w.testReloadDelay = 0;
+    w.testMissingLink = true;
     w.testEmit = (event: string, payload: unknown = null) => (events.get(event) ?? []).forEach(handler => callbacks.get(handler)?.({ event, payload }));
     w.testReload = null;
     w.__TAURI_INTERNALS__ = {
@@ -47,6 +48,10 @@ async function reader(page: Page, initial = 'gfm', recentNames: string[] = []) {
         if (command === 'follow_link') {
           if (args.href.startsWith('#')) return { kind: 'anchor', id: args.href.slice(1) };
           if (args.href === 'basic.md') return { kind: 'markdown', path: fixtures.basic.path, anchor: null };
+          if (args.href === 'not-here.md') {
+            if (w.testMissingLink) throw new Error('No such file');
+            return { kind: 'markdown', path: fixtures.basic.path, anchor: null };
+          }
           if (args.href.startsWith('https:')) return { kind: 'external', url: args.href };
           throw new Error('Unsafe link');
         }
@@ -251,6 +256,17 @@ test('failed open and reload retain the document with a persistent retry', async
   await page.getByRole('button', { name: 'Retry' }).click();
   await expect(page.locator('#document p').first()).toHaveText('Recovered on disk.');
   await expect(error).toBeHidden();
+});
+
+test('a missing relative link can be retried after its target appears', async ({ page }) => {
+  await reader(page, 'broken-link');
+  await page.getByRole('link', { name: 'Open missing page' }).click();
+  await expect(page.locator('#reader-error')).toContainText('Could not follow this link');
+  await expect(page.locator('#document h1')).toHaveText('Missing local page');
+  await page.evaluate(() => { (window as any).testMissingLink = false; });
+  await page.getByRole('button', { name: 'Retry' }).click();
+  await expect(page.locator('#file-name')).toHaveText('basic.md');
+  await expect(page.locator('#reader-error')).toBeHidden();
 });
 
 test('an older reload response cannot replace a newer file choice', async ({ page }) => {
